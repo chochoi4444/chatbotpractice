@@ -1,0 +1,807 @@
+<title>MY AGENCY</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 아티스트 매니지먼트 사무실 — 왼쪽 부서 레일 + 오른쪽 업무 데스크. 폰에선 상단 가로 탭. */
+:root {
+  --bg: #f6f4f7; --panel: #ffffff; --ink: #221d26; --muted: #6f6776; --line: #e4dfe7;
+  --accent: #8a3d6b; --accent-ink: #ffffff; --accent-soft: #f3e6ee;
+  --good: #2f7a52; --warn: #a8661b; --bad: #b3363a;
+  --c-health: #c2416c; --c-hobby: #3b6fb6; --c-sched: #8a5cc2; --c-career: #2f7a6a; --c-money: #b07a1f;
+  --display: "Gowun Batang", "Noto Serif KR", serif;
+  --body: "IBM Plex Sans KR", -apple-system, "Noto Sans KR", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #17141a; --panel: #211d25; --ink: #ece7ef; --muted: #a59cab; --line: #36303b;
+  --accent: #e08bbb; --accent-ink: #1d1220; --accent-soft: #3a2533;
+  --good: #6cc495; --warn: #e0a65a; --bad: #ef7f82;
+  --c-health: #ec7fa3; --c-hobby: #7ea8e8; --c-sched: #b897ea; --c-career: #67c2ad; --c-money: #e0b45e;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #17141a; --panel: #211d25; --ink: #ece7ef; --muted: #a59cab; --line: #36303b;
+  --accent: #e08bbb; --accent-ink: #1d1220; --accent-soft: #3a2533;
+  --good: #6cc495; --warn: #e0a65a; --bad: #ef7f82;
+  --c-health: #ec7fa3; --c-hobby: #7ea8e8; --c-sched: #b897ea; --c-career: #67c2ad; --c-money: #e0b45e;
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.55; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shell { display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: 100vh; }
+nav.rail { border-right: 1px solid var(--line); padding: 22px 14px; position: sticky; top: env(safe-area-inset-top, 0px); height: 100vh; overflow-y: auto; background: var(--panel); }
+.brand { font-family: var(--display); font-size: 22px; letter-spacing: .02em; padding: 0 8px 2px; }
+.brand-sub { font-size: 11px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; padding: 0 8px 18px; }
+.tabs { display: flex; flex-direction: column; gap: 2px; }
+.tab { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 9px 10px; border-radius: 8px; text-align: left; color: var(--muted); font-weight: 500; }
+.tab .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+.tab:hover { background: var(--bg); color: var(--ink); }
+.tab[aria-selected="true"] { background: var(--accent-soft); color: var(--ink); }
+.rail-foot { margin-top: 24px; display: grid; gap: 6px; font-size: 12px; color: var(--muted); padding: 0 8px; }
+.rail-foot button { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; text-align: left; color: var(--ink); }
+main { padding-block: 26px 60px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); min-width: 0; }
+.page-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+h1 { font-family: var(--display); font-size: 28px; margin: 0; text-wrap: balance; }
+.eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h2 { font-size: 15px; margin: 0; font-weight: 600; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.card-head h2 { display: flex; align-items: center; gap: 8px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-size: 13px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.danger { color: var(--bad); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
+.list { display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); align-items: start; }
+.row:first-child { border-top: 0; }
+.row .when { font-family: var(--mono); font-size: 12px; color: var(--muted); padding-top: 1px; }
+.row .what { min-width: 0; overflow-wrap: anywhere; }
+.row .sub { font-size: 12px; color: var(--muted); }
+.row .acts { display: flex; gap: 4px; opacity: .55; }
+.row:hover .acts, .row:focus-within .acts { opacity: 1; }
+.icon-btn { background: none; border: 0; color: var(--muted); padding: 2px 6px; border-radius: 6px; font-size: 12px; }
+.icon-btn:hover { background: var(--bg); color: var(--ink); }
+.pill { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.pill.good { color: var(--good); border-color: currentColor; }
+.pill.warn { color: var(--warn); border-color: currentColor; }
+.pill.bad { color: var(--bad); border-color: currentColor; }
+.pill.acc { color: var(--accent); border-color: currentColor; }
+.stars { color: var(--accent); letter-spacing: 1px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.stat .k { font-size: 12px; color: var(--muted); }
+.stat .v { font-family: var(--mono); font-size: 22px; font-variant-numeric: tabular-nums; }
+.stat .d { font-size: 12px; color: var(--muted); }
+.more { margin-top: 6px; }
+.notice { background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; }
+/* Calendar */
+.cal-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cal-wrap { overflow-x: auto; }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(44px, 1fr)); gap: 4px; min-width: 330px; }
+.cal .dow { font-size: 11px; color: var(--muted); text-align: center; padding: 4px 0; }
+.day { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; min-height: 82px; padding: 5px; text-align: left; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.day.out { opacity: .4; }
+.day.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.day.sel { background: var(--accent-soft); }
+.day.period { background-image: linear-gradient(var(--c-health), var(--c-health)); background-size: 100% 3px; background-repeat: no-repeat; background-position: bottom; }
+.day.predicted { background-image: repeating-linear-gradient(90deg, var(--c-health) 0 4px, transparent 4px 7px); background-size: 100% 3px; background-repeat: no-repeat; background-position: bottom; }
+.day .dn { font-family: var(--mono); font-size: 12px; }
+.chip { font-size: 10.5px; line-height: 1.3; border-radius: 4px; padding: 1px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--bg); border-left: 3px solid var(--muted); }
+.chip-more { font-size: 10px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+/* Tables */
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 500; color: var(--muted); font-size: 12px; }
+td { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.up { color: var(--good); } .down { color: var(--bad); }
+/* Chart */
+.chart { position: relative; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--panel); font-size: 12px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, -110%); }
+.bar-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 90px; gap: 8px; align-items: center; font-size: 12px; padding: 3px 0; }
+.bar-track { height: 10px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 0 4px 4px 0; }
+.progress { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.progress > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+/* Profile */
+.profile { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+.avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-family: var(--display); font-size: 26px; }
+.profile .name { font-family: var(--display); font-size: 22px; }
+/* Dialog */
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink); padding: 0; width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 40px); }
+dialog::backdrop { background: rgb(0 0 0 / .35); }
+dialog form { padding: 18px; display: grid; gap: 12px; }
+.fgrid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+.fgrid .full { grid-column: 1 / -1; }
+label.f { display: grid; gap: 4px; font-size: 12px; color: var(--muted); min-width: 0; }
+label.f input, label.f select, label.f textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 14px; }
+label.f textarea { min-height: 70px; resize: vertical; }
+label.chk { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.rating { display: flex; gap: 4px; }
+.rating button { border: 1px solid var(--line); background: var(--bg); border-radius: 6px; width: 34px; height: 32px; }
+.rating button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.dlg-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.toast { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--panel); padding: 8px 14px; border-radius: 8px; font-size: 13px; z-index: 50; }
+.confirm-bar { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+@media (max-width: 760px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  nav.rail { position: sticky; top: env(safe-area-inset-top, 0px); height: auto; z-index: 10; border-right: 0; border-bottom: 1px solid var(--line); padding: 10px max(12px, env(safe-area-inset-left, 0px)) 8px max(12px, env(safe-area-inset-right, 0px)); }
+  .brand { font-size: 18px; } .brand-sub, .rail-foot { display: none; }
+  .tabs { flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+  .tab { white-space: nowrap; padding: 7px 10px; }
+  main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 60px; }
+  .fgrid { grid-template-columns: 1fr; }
+  .day { min-height: 58px; } .chip { display: none; }
+  .day .dots { display: flex !important; }
+  .profile { grid-template-columns: auto minmax(0, 1fr); }
+  .profile .btn { grid-column: 1 / -1; justify-self: start; }
+}
+.day .dots { display: none; gap: 2px; flex-wrap: wrap; }
+.day .dots i { width: 6px; height: 6px; border-radius: 50%; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="shell">
+  <nav class="rail" aria-label="부서">
+    <div class="brand">MY AGENCY</div>
+    <div class="brand-sub">Artist Management Desk</div>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="rail-foot">
+      <span id="syncState">불러오는 중…</span>
+      <button type="button" id="exportBtn">백업 파일 저장 (JSON)</button>
+      <label class="btn" style="text-align:left;cursor:pointer">백업 불러오기<input type="file" id="importFile" accept="application/json" hidden></label>
+    </div>
+  </nav>
+  <main id="main"></main>
+</div>
+
+<dialog id="dlg"><form id="dlgForm" method="dialog"></form></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ───────── 스키마: 관리 항목 정의 ─────────
+const GROUPS = [
+  { id: 'home', label: '오늘의 브리핑', color: 'var(--accent)' },
+  { id: 'calendar', label: '스케줄 캘린더', color: 'var(--c-sched)' },
+  { id: 'health', label: '건강·뷰티', color: 'var(--c-health)' },
+  { id: 'schedule', label: '일정·약속', color: 'var(--c-sched)' },
+  { id: 'hobby', label: '취미·문화', color: 'var(--c-hobby)' },
+  { id: 'career', label: '커리어', color: 'var(--c-career)' },
+  { id: 'money', label: '머니·스타일', color: 'var(--c-money)' },
+];
+const RATING5 = ['', '최악', '나쁨', '보통', '좋음', '최상'];
+const M = {
+  condition: { g: 'health', title: '건강 컨디션', date: 'date', fields: [
+    ['date','날짜','date',1], ['score','컨디션','rating'], ['sleep','수면(시간)','number'], ['weight','체중(kg)','number'],
+    ['symptoms','증상','text'], ['memo','메모','textarea'] ],
+    head: r => `컨디션 ${stars(r.score)}`, sub: r => [r.sleep && `수면 ${r.sleep}h`, r.weight && `${r.weight}kg`, r.symptoms].filter(Boolean).join(' · ') },
+  skin: { g: 'health', title: '피부 상태', date: 'date', fields: [
+    ['date','날짜','date',1], ['score','피부 상태','rating'], ['concern','고민·트러블','text'], ['products','사용 제품/루틴','text'], ['memo','메모','textarea'] ],
+    head: r => `피부 ${stars(r.score)} ${r.concern ? '· ' + r.concern : ''}`, sub: r => r.products || r.memo },
+  meal: { g: 'health', title: '식단', date: 'date', fields: [
+    ['date','날짜','date',1], ['slot','끼니','select',0,['아침','점심','저녁','간식','야식']], ['menu','메뉴','text',1], ['kcal','칼로리(kcal)','number'], ['memo','메모','text'] ],
+    head: r => `${r.slot ? '[' + r.slot + '] ' : ''}${r.menu}`, sub: r => [r.kcal && `${r.kcal}kcal`, r.memo].filter(Boolean).join(' · ') },
+  workout: { g: 'health', title: '운동', date: 'date', fields: [
+    ['date','날짜','date',1], ['kind','운동 종류','text',1], ['minutes','시간(분)','number'], ['intensity','강도','select',0,['가볍게','보통','고강도']], ['memo','메모','text'] ],
+    head: r => r.kind, sub: r => [r.minutes && `${r.minutes}분`, r.intensity, r.memo].filter(Boolean).join(' · ') },
+  clinic: { g: 'health', title: '병원·피부과', date: 'date', fields: [
+    ['date','방문일','date',1], ['place','병원명','text',1], ['dept','진료과','select',0,['피부과','내과','산부인과','치과','안과','정형외과','한의원','기타']],
+    ['treatment','진료·시술 내용','text'], ['cost','비용(원)','number'], ['next','다음 예약일','date'], ['memo','메모','textarea'] ],
+    head: r => `${r.place}${r.dept ? ' · ' + r.dept : ''}`, sub: r => [r.treatment, r.cost && won(r.cost), r.next && `다음 ${r.next}`].filter(Boolean).join(' · ') },
+  period: { g: 'health', title: '생리 기록', date: 'start', fields: [
+    ['start','시작일','date',1], ['end','종료일','date'], ['flow','양','select',0,['적음','보통','많음']], ['symptoms','증상','text'] ],
+    head: r => `생리 ${r.start}${r.end ? ' ~ ' + r.end : ''}`, sub: r => [r.flow, r.symptoms].filter(Boolean).join(' · ') },
+
+  event: { g: 'schedule', title: '일정·약속', date: 'date', fields: [
+    ['date','날짜','date',1], ['time','시간','time'], ['kind','구분','select',0,['약속','친구','업무','야근','가족','데이트','기타']],
+    ['title','제목','text',1], ['place','장소','text'], ['with','함께하는 사람','text'], ['memo','메모','textarea'] ],
+    head: r => `${r.time ? r.time + ' ' : ''}${r.title}`, sub: r => [r.kind, r.place, r.with && `with ${r.with}`].filter(Boolean).join(' · ') },
+  overtime: { g: 'schedule', title: '야근', date: 'date', fields: [
+    ['date','날짜','date',1], ['hours','야근 시간(시간)','number'], ['until','퇴근 시각','time'], ['reason','사유·업무','text'] ],
+    head: r => `야근 ${r.hours ? r.hours + 'h' : ''}${r.until ? ' (' + r.until + ' 퇴근)' : ''}`, sub: r => r.reason },
+  drink: { g: 'schedule', title: '술 마신 날', date: 'date', fields: [
+    ['date','날짜','date',1], ['with','누구와','text'], ['what','주종','text'], ['amount','양','select',0,['가볍게','적당히','많이','과음']],
+    ['place','장소','text'], ['hangover','다음날 컨디션','rating'] ],
+    head: r => `🍷 ${r.with || '혼술'}${r.what ? ' · ' + r.what : ''}`, sub: r => [r.amount, r.place, r.hangover && `다음날 ${RATING5[r.hangover]}`].filter(Boolean).join(' · ') },
+
+  lesson: { g: 'hobby', title: '레슨', date: 'date', fields: [
+    ['date','날짜','date',1], ['subject','레슨 종류','text',1], ['teacher','선생님','text'], ['content','배운 내용','textarea'], ['cost','비용(원)','number'] ],
+    head: r => r.subject, sub: r => [r.teacher, r.content, r.cost && won(r.cost)].filter(Boolean).join(' · ') },
+  show: { g: 'hobby', title: '전시·공연 관람', date: 'date', fields: [
+    ['date','관람일','date',1], ['kind','구분','select',0,['전시','클래식','뮤지컬','연극','콘서트','영화','기타']], ['title','제목','text',1],
+    ['venue','장소','text'], ['rating','평점','rating'], ['cost','비용(원)','number'], ['review','후기','textarea'] ],
+    head: r => `${r.title}`, sub: r => [r.kind, r.venue, r.rating && stars(r.rating), r.cost && won(r.cost)].filter(Boolean).join(' · ') },
+  orchestra: { g: 'hobby', title: '오케스트라 연습', date: 'date', fields: [
+    ['date','날짜','date',1], ['time','시간','time'], ['pieces','연습곡','text'], ['attend','출결','select',0,['출석','지각','결석','공연']], ['memo','지휘자 코멘트·메모','textarea'] ],
+    head: r => `합주 ${r.pieces ? '· ' + r.pieces : ''}`, sub: r => [r.time, r.attend, r.memo].filter(Boolean).join(' · ') },
+  book: { g: 'hobby', title: '독서 리스트', date: 'finished', fields: [
+    ['title','제목','text',1], ['author','저자','text'], ['status','상태','select',0,['읽고 싶음','읽는 중','완독','중단']],
+    ['started','시작일','date'], ['finished','완독일','date'], ['rating','평점','rating'], ['memo','한 줄 메모','textarea'] ],
+    head: r => `${r.title}${r.author ? ' — ' + r.author : ''}`, sub: r => [r.status, r.rating && stars(r.rating), r.memo].filter(Boolean).join(' · ') },
+
+  company: { g: 'career', title: '재직 회사', date: 'joined', fields: [
+    ['name','회사명','text',1], ['role','직무·직급','text'], ['joined','입사일','date'], ['left','퇴사일(재직중이면 비움)','date'], ['memo','메모','textarea'] ],
+    head: r => `${r.name}${r.role ? ' · ' + r.role : ''}`, sub: r => `${r.joined || '?'} ~ ${r.left || '재직 중'}` },
+  task: { g: 'career', title: '진행 업무', date: 'due', fields: [
+    ['title','업무명','text',1], ['status','상태','select',0,['예정','진행 중','보류','완료']], ['start','시작일','date'], ['due','마감일','date'],
+    ['priority','중요도','select',0,['높음','보통','낮음']], ['result','성과·메모','textarea'] ],
+    head: r => r.title, sub: r => [r.status, r.priority && `중요도 ${r.priority}`, r.due && `마감 ${r.due}`].filter(Boolean).join(' · ') },
+  salary: { g: 'career', title: '연봉·보상', date: null, fields: [
+    ['year','연도','number',1], ['company','회사','text'], ['base','계약 연봉(원)','number',1], ['bonus','성과급(원)','number'], ['welfare','복지비·포인트(원)','number'],
+    ['net','월 실수령액(원)','number'], ['withheld','원천징수 결정세액(원)','number'], ['refund','연말정산 환급(+)/추징(-)','number'], ['memo','메모','textarea'] ],
+    head: r => `${r.year}년 ${r.company || ''}`, sub: r => `연봉 ${won(r.base)}${r.bonus ? ' · 성과급 ' + won(r.bonus) : ''}` },
+
+  shop: { g: 'money', title: '쇼핑 리스트', date: null, fields: [
+    ['item','품목','text',1], ['cat','카테고리','select',0,['의류','신발','가방','뷰티','생활','취미','기타']], ['price','예상 가격(원)','number'],
+    ['priority','우선순위','select',0,['꼭 필요','있으면 좋음','위시']], ['bought','구매 완료','check'], ['boughtOn','구매일','date'], ['link','링크','url'] ],
+    head: r => r.item, sub: r => [r.cat, r.priority, r.price && won(r.price)].filter(Boolean).join(' · ') },
+  style: { g: 'money', title: '스타일링 노트', date: null, fields: [
+    ['title','룩 이름','text',1], ['tpo','상황(TPO)','text'], ['items','아이템 구성','textarea'], ['tip','스타일링 팁','textarea'], ['link','참고 링크','url'] ],
+    head: r => `${r.title}${r.tpo ? ' · ' + r.tpo : ''}`, sub: r => [r.items, r.tip].filter(Boolean).join(' / ') },
+  spend: { g: 'money', title: '기타 지출', date: 'date', fields: [
+    ['date','날짜','date',1], ['cat','분류','select',0,['식비','교통','뷰티','패션','문화','건강','선물','기타']], ['what','내용','text',1], ['amount','금액(원)','number',1] ],
+    head: r => r.what, sub: r => [r.cat, won(r.amount)].filter(Boolean).join(' · ') },
+
+  goal: { g: 'home', title: '올해의 목표', date: null, fields: [
+    ['title','목표','text',1], ['area','분야','select',0,['건강','커리어','머니','취미','관계','기타']], ['progress','진행률(%)','number'], ['memo','메모','text'] ],
+    head: r => r.title, sub: r => r.area },
+};
+for (const [id, m] of Object.entries(M)) { m.id = id; m.color = GROUPS.find(g => g.id === m.g).color; }
+const CAL_MODS = ['event','overtime','drink','clinic','lesson','show','orchestra','workout','task'];
+
+// ───────── 유틸 ─────────
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate()+n); return ymd(d); };
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+const today = () => ymd(new Date());
+const num = v => (v === '' || v == null || isNaN(+v)) ? 0 : +v;
+const won = v => v == null || v === '' ? '' : Math.round(+v).toLocaleString('ko-KR') + '원';
+const man = v => (Math.round(+v / 1e4)).toLocaleString('ko-KR') + '만';
+const stars = n => n ? `<span class="stars">${'★'.repeat(n)}${'☆'.repeat(5-n)}</span>` : '';
+const pct = v => (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const DOW = ['일','월','화','수','목','금','토'];
+const fmtDay = s => { const d = parse(s); return `${d.getMonth()+1}/${d.getDate()} (${DOW[d.getDay()]})`; };
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2200); }
+
+// ───────── 저장소: 비공개 db (로그인 사용자별) → 실패 시 브라우저 저장 ─────────
+const LS_KEY = 'myagency:v1';
+const data = Object.fromEntries(Object.keys(M).map(k => [k, []]));
+let store = null; // { save(mod, rec), remove(mod, id) }
+let profile = { name: '', motto: '' };
+const lsLoad = () => { try { const j = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (j) { for (const k in M) data[k] = j[k] || []; if (j._profile) profile = j._profile; } } catch {} };
+const lsSave = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ ...data, _profile: profile })); } catch {} };
+const localStore = {
+  async save(mod, rec) { const a = data[mod]; const i = a.findIndex(x => x.id === rec.id); i >= 0 ? a[i] = rec : a.push(rec); lsSave(); render(); },
+  async remove(mod, id) { data[mod] = data[mod].filter(x => x.id !== id); lsSave(); render(); },
+  async saveProfile(p) { profile = p; lsSave(); render(); },
+};
+
+async function initStore() {
+  lsLoad();
+  store = localStore;
+  $('#syncState').textContent = '이 브라우저에 저장 중';
+  render();
+  let db = null, me = null;
+  try {
+    if (!window.claude?.use) throw 0;
+    db = await window.claude.use('db');
+    const user = await window.claude.use('user');
+    me = user ? await user.id() : null;
+  } catch {}
+  if (!db || !me) {
+    $('#syncState').textContent = '이 브라우저에만 저장됨 (로그인하면 계정에 저장)';
+    return;
+  }
+  const base = `data/users/${me}`;
+  let first = true;
+  const pending = new Set(Object.keys(M));
+  for (const mod of Object.keys(M)) {
+    db.doc(`${base}/${mod}`).collection('items').limit(1000).onSnapshot(snap => {
+      data[mod] = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      pending.delete(mod);
+      if (!pending.size && first) { first = false; migrateLocal(db, base); }
+      render();
+    }, e => { $('#syncState').textContent = '동기화 오류: ' + (e?.message || e?.code); });
+  }
+  db.doc(`${base}/profile`).onSnapshot(s => { if (s.exists) { profile = s.data(); render(); } });
+  store = {
+    async save(mod, rec) { const { id, ...rest } = rec; await db.doc(`${base}/${mod}`).collection('items').doc(id).set(rest); },
+    async remove(mod, id) { await db.doc(`${base}/${mod}`).collection('items').doc(id).delete(); },
+    async saveProfile(p) { profile = p; render(); await db.doc(`${base}/profile`).set(p); },
+  };
+  $('#syncState').textContent = '내 계정에 비공개로 저장됨 ✓';
+}
+// 로그인 전에 브라우저에 적어둔 기록이 있으면 계정 저장소로 옮김
+async function migrateLocal(db, base) {
+  let j = null; try { j = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch {}
+  if (!j) return;
+  let n = 0;
+  for (const mod of Object.keys(M)) for (const r of (j[mod] || [])) {
+    if (!data[mod].some(x => x.id === r.id)) { const { id, ...rest } = r; await db.doc(`${base}/${mod}`).collection('items').doc(id).set(rest); n++; }
+  }
+  try { localStorage.removeItem(LS_KEY); } catch {}
+  if (n) toast(`브라우저 기록 ${n}건을 계정으로 옮겼어요`);
+}
+
+// ───────── 계산 ─────────
+const sorted = (mod, desc = true) => {
+  const key = M[mod].date;
+  return [...data[mod]].sort((a, b) => {
+    const x = (key && a[key]) || a.year || a._ts || '', y = (key && b[key]) || b.year || b._ts || '';
+    return desc ? String(y).localeCompare(String(x)) : String(x).localeCompare(String(y));
+  });
+};
+function periodInfo() {
+  const p = sorted('period', false).filter(r => r.start);
+  if (!p.length) return null;
+  const gaps = []; for (let i = 1; i < p.length; i++) gaps.push(diffDays(p[i-1].start, p[i].start));
+  const recent = gaps.filter(g => g >= 15 && g <= 60).slice(-6);
+  const cycle = recent.length ? Math.round(recent.reduce((a, b) => a + b, 0) / recent.length) : 28;
+  const lens = p.filter(r => r.end).map(r => diffDays(r.start, r.end) + 1).slice(-6);
+  const len = lens.length ? Math.round(lens.reduce((a, b) => a + b, 0) / lens.length) : 5;
+  const last = p[p.length - 1];
+  let next = addDays(last.start, cycle);
+  while (diffDays(today(), next) < -len) next = addDays(next, cycle);
+  return { cycle, len, last, next, dday: diffDays(today(), next), measured: recent.length };
+}
+function periodDays() {
+  const set = new Map();
+  for (const r of data.period) if (r.start) {
+    const end = r.end || addDays(r.start, 4);
+    for (let d = r.start, i = 0; d <= end && i < 15; d = addDays(d, 1), i++) set.set(d, 'period');
+  }
+  const pi = periodInfo();
+  if (pi) for (let k = 0; k < 3; k++) {
+    const s = addDays(pi.next, pi.cycle * k);
+    for (let i = 0; i < pi.len; i++) { const d = addDays(s, i); if (!set.has(d)) set.set(d, 'predicted'); }
+  }
+  return set;
+}
+function salaryRows() {
+  const rows = sorted('salary', false).filter(r => r.year);
+  return rows.map((r, i) => {
+    const total = num(r.base) + num(r.bonus) + num(r.welfare);
+    const prev = rows[i - 1];
+    const prevTotal = prev ? num(prev.base) + num(prev.bonus) + num(prev.welfare) : 0;
+    return { ...r, total,
+      baseGrowth: prev && num(prev.base) ? (num(r.base) / num(prev.base) - 1) * 100 : null,
+      totalGrowth: prev && prevTotal ? (total / prevTotal - 1) * 100 : null,
+      netYear: num(r.net) * 12 };
+  });
+}
+function monthSpend(ym) {
+  const by = {};
+  const add = (k, v) => { if (v) by[k] = (by[k] || 0) + num(v); };
+  for (const r of data.clinic) if ((r.date || '').startsWith(ym)) add('병원·피부과', r.cost);
+  for (const r of data.lesson) if ((r.date || '').startsWith(ym)) add('레슨', r.cost);
+  for (const r of data.show) if ((r.date || '').startsWith(ym)) add('관람', r.cost);
+  for (const r of data.shop) if (r.bought && (r.boughtOn || '').startsWith(ym)) add('쇼핑', r.price);
+  for (const r of data.spend) if ((r.date || '').startsWith(ym)) add(r.cat || '기타', r.amount);
+  return by;
+}
+const countIn = (mod, ym) => data[mod].filter(r => (r[M[mod].date] || '').startsWith(ym)).length;
+
+// ───────── 렌더 ─────────
+let tab = 'home';
+try { tab = localStorage.getItem('myagency:tab') || 'home'; } catch {}
+if (location.hash && GROUPS.some(g => g.id === location.hash.slice(1))) tab = location.hash.slice(1);
+const showAll = new Set();
+let calMonth = today().slice(0, 7), calSel = today();
+
+function renderTabs() {
+  $('#tabs').innerHTML = GROUPS.map(g => `<button type="button" class="tab" role="tab" aria-selected="${g.id === tab}" data-tab="${g.id}"><span class="dot" style="background:${g.color}"></span>${g.label}</button>`).join('');
+}
+function render() {
+  renderTabs();
+  const g = GROUPS.find(x => x.id === tab) || GROUPS[0];
+  const fn = { home: pageHome, calendar: pageCalendar, health: pageHealth, schedule: pageSchedule, hobby: pageHobby, career: pageCareer, money: pageMoney }[g.id];
+  $('#main').innerHTML = fn();
+  wireCharts();
+}
+const pageHead = (eyebrow, title, extra = '') => `<div class="page-head"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1></div><div>${extra}</div></div>`;
+
+function moduleCard(mod, opts = {}) {
+  const m = M[mod];
+  let rows = opts.rows || sorted(mod);
+  const limit = opts.limit ?? 6;
+  const all = showAll.has(mod);
+  const shown = all ? rows : rows.slice(0, limit);
+  const when = r => opts.when ? opts.when(r) : (m.date && r[m.date] ? r[m.date].slice(5).replace('-', '/') : (r.year || ''));
+  return `<section class="card">
+    <div class="card-head"><h2><span class="swatch" style="background:${m.color}"></span>${m.title} <span class="muted small num">${data[mod].length}</span></h2>
+    <button type="button" class="btn sm" data-add="${mod}">+ 기록</button></div>
+    ${opts.top || ''}
+    ${shown.length ? `<div class="list">${shown.map(r => `<div class="row">
+      <div class="when">${esc(when(r))}</div>
+      <div class="what"><div>${opts.headHtml ? opts.headHtml(r) : m.head(r)}</div>${(() => { const s = m.sub(r); return s ? `<div class="sub">${s}</div>` : ''; })()}</div>
+      <div class="acts"><button type="button" class="icon-btn" data-edit="${mod}:${r.id}" aria-label="수정">수정</button></div>
+    </div>`).join('')}</div>` : `<div class="empty">${opts.empty || '아직 기록이 없어요. “+ 기록”으로 첫 항목을 추가하세요.'}</div>`}
+    ${rows.length > limit ? `<button type="button" class="btn sm more" data-more="${mod}">${all ? '접기' : `전체 ${rows.length}건 보기`}</button>` : ''}
+  </section>`;
+}
+
+function pageHome() {
+  const t = today(), ym = t.slice(0, 7);
+  const pi = periodInfo();
+  const upcoming = [];
+  for (const mod of CAL_MODS) for (const r of data[mod]) {
+    const d = r[M[mod].date]; if (d && d >= t && diffDays(t, d) <= 7) upcoming.push({ d, mod, r });
+  }
+  for (const r of data.clinic) if (r.next && r.next >= t && diffDays(t, r.next) <= 14) upcoming.push({ d: r.next, mod: 'clinic', r, label: `${r.place} 재방문 예약` });
+  upcoming.sort((a, b) => (a.d + (a.r.time || '')).localeCompare(b.d + (b.r.time || '')));
+  const todayCond = data.condition.find(r => r.date === t);
+  const todaySkin = data.skin.find(r => r.date === t);
+  const meals = data.meal.filter(r => r.date === t);
+  const workouts = data.workout.filter(r => r.date === t);
+  const kcal = meals.reduce((s, r) => s + num(r.kcal), 0);
+  const sal = salaryRows(); const lastSal = sal[sal.length - 1];
+  const spend = Object.values(monthSpend(ym)).reduce((a, b) => a + b, 0);
+  const openTasks = data.task.filter(r => r.status !== '완료');
+  const wish = data.shop.filter(r => !r.bought).length;
+  const reading = data.book.filter(r => r.status === '읽는 중');
+  const name = profile.name || '나';
+  const d = parse(t);
+  return `${pageHead(`${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${DOW[d.getDay()]}요일`, '오늘의 브리핑')}
+  <section class="card" style="margin-bottom:16px"><div class="profile">
+    <div class="avatar">${esc(name.slice(0, 1))}</div>
+    <div><div class="eyebrow">Artist</div><div class="name">${esc(name)}</div><div class="muted">${esc(profile.motto || '프로필을 설정하면 이름과 올해의 다짐이 여기 보여요.')}</div></div>
+    <button type="button" class="btn" data-profile>프로필 편집</button>
+  </div></section>
+  <div class="stats">
+    <div class="stat"><div class="k">오늘 컨디션</div><div class="v">${todayCond ? RATING5[todayCond.score] || '기록' : '—'}</div><div class="d">${todaySkin ? '피부 ' + (RATING5[todaySkin.score] || '기록') : '피부 미기록'}</div></div>
+    <div class="stat"><div class="k">오늘 식단 · 운동</div><div class="v">${meals.length}끼 · ${workouts.length}회</div><div class="d">${kcal ? kcal.toLocaleString() + ' kcal' : '칼로리 미기록'}</div></div>
+    <div class="stat"><div class="k">다음 생리 예정</div><div class="v">${pi ? (pi.dday > 0 ? 'D-' + pi.dday : pi.dday === 0 ? 'D-day' : '진행 중?') : '—'}</div><div class="d">${pi ? `${fmtDay(pi.next)} · 주기 ${pi.cycle}일` : '기록 2회부터 예측'}</div></div>
+    <div class="stat"><div class="k">이번 달</div><div class="v">🍷 ${countIn('drink', ym)} · 야근 ${countIn('overtime', ym)}</div><div class="d">운동 ${countIn('workout', ym)}회 · 지출 ${spend ? man(spend) + '원' : '0원'}</div></div>
+    <div class="stat"><div class="k">최근 연봉</div><div class="v">${lastSal ? man(lastSal.base) : '—'}</div><div class="d">${lastSal?.baseGrowth != null ? `전년 대비 <span class="${lastSal.baseGrowth >= 0 ? 'up' : 'down'}">${pct(lastSal.baseGrowth)}</span>` : '연도별 연봉을 입력하세요'}</div></div>
+  </div>
+  <div class="grid">
+    <section class="card"><div class="card-head"><h2>다가오는 7일</h2><button type="button" class="btn sm" data-add="event">+ 일정</button></div>
+      ${upcoming.length ? `<div class="list">${upcoming.slice(0, 12).map(u => `<div class="row"><div class="when">${fmtDay(u.d)}</div><div class="what"><div>${u.label ? esc(u.label) : M[u.mod].head(u.r)}</div><div class="sub"><span class="swatch" style="background:${M[u.mod].color}"></span> ${M[u.mod].title}</div></div><div class="acts"><button type="button" class="icon-btn" data-edit="${u.mod}:${u.r.id}">수정</button></div></div>`).join('')}</div>` : '<div class="empty">일주일 안에 잡힌 일정이 없어요.</div>'}
+    </section>
+    <section class="card"><div class="card-head"><h2>빠른 기록</h2></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${['condition','skin','meal','workout','drink','overtime','event','spend','period'].map(k => `<button type="button" class="btn sm" data-add="${k}">${M[k].title}</button>`).join('')}</div>
+      <div class="small muted" style="margin-top:12px">진행 중 업무 ${openTasks.length}건 · 읽는 책 ${reading.length}권 · 위시 ${wish}개</div>
+      ${openTasks.slice(0, 3).map(r => `<div class="small" style="margin-top:6px">• ${esc(r.title)} ${r.due ? `<span class="pill ${diffDays(t, r.due) < 0 ? 'bad' : diffDays(t, r.due) <= 3 ? 'warn' : ''}">마감 ${r.due.slice(5)}</span>` : ''}</div>`).join('')}
+    </section>
+    ${moduleCard('goal', { when: r => (num(r.progress)) + '%', headHtml: r => `${esc(r.title)}<div class="progress"><i style="width:${Math.min(100, num(r.progress))}%"></i></div>`, empty: '올해 이루고 싶은 목표를 적어보세요.' })}
+  </div>`;
+}
+
+function pageCalendar() {
+  const [y, mo] = calMonth.split('-').map(Number);
+  const first = new Date(y, mo - 1, 1);
+  const start = new Date(first); start.setDate(1 - first.getDay());
+  const per = periodDays();
+  const byDay = {};
+  for (const mod of CAL_MODS) for (const r of data[mod]) { const d = r[M[mod].date]; if (d) (byDay[d] ||= []).push({ mod, r }); }
+  for (const r of data.clinic) if (r.next) (byDay[r.next] ||= []).push({ mod: 'clinic', r, label: `${r.place} 예약` });
+  const cells = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i); const s = ymd(d);
+    const items = (byDay[s] || []).sort((a, b) => (a.r.time || '').localeCompare(b.r.time || ''));
+    cells.push(`<button type="button" class="day ${s.slice(0,7) !== calMonth ? 'out' : ''} ${s === today() ? 'today' : ''} ${s === calSel ? 'sel' : ''} ${per.get(s) || ''}" data-day="${s}" aria-label="${s} 일정 ${items.length}건">
+      <span class="dn">${d.getDate()}</span>
+      ${items.slice(0, 3).map(it => `<span class="chip" style="border-left-color:${M[it.mod].color}">${esc(it.label || chipText(it))}</span>`).join('')}
+      ${items.length > 3 ? `<span class="chip-more">+${items.length - 3}</span>` : ''}
+      <span class="dots">${items.slice(0, 5).map(it => `<i style="background:${M[it.mod].color}"></i>`).join('')}</span>
+    </button>`);
+  }
+  const selItems = byDay[calSel] || [];
+  const dayLogs = ['condition','skin','meal'].flatMap(mod => data[mod].filter(r => r.date === calSel).map(r => ({ mod, r })));
+  return `${pageHead('Schedule', `${y}년 ${mo}월`, `<div class="cal-head"><button type="button" class="btn" data-cal="-1" aria-label="이전 달">‹</button><button type="button" class="btn" data-cal="0">오늘</button><button type="button" class="btn" data-cal="1" aria-label="다음 달">›</button></div>`)}
+  <div class="card"><div class="cal-wrap"><div class="cal">${DOW.map(d => `<div class="dow">${d}</div>`).join('')}${cells.join('')}</div></div>
+    <div class="legend">${[['var(--c-sched)','일정·야근·술'],['var(--c-health)','병원·운동'],['var(--c-hobby)','레슨·관람·합주'],['var(--c-career)','업무 마감']].map(([c,l]) => `<span><i class="swatch" style="background:${c}"></i>${l}</span>`).join('')}
+      <span><i class="swatch" style="background:var(--c-health);height:3px"></i>생리 (점선=예측)</span></div>
+  </div>
+  <div class="grid" style="margin-top:16px">
+    <section class="card"><div class="card-head"><h2>${fmtDay(calSel)}</h2><button type="button" class="btn sm" data-add="event" data-date="${calSel}">+ 이 날 일정</button></div>
+      ${selItems.length || dayLogs.length ? `<div class="list">${[...selItems, ...dayLogs].map(u => `<div class="row"><div class="when">${esc(u.r.time || M[u.mod].title.slice(0, 4))}</div><div class="what"><div>${u.label ? esc(u.label) : M[u.mod].head(u.r)}</div><div class="sub">${M[u.mod].sub(u.r) || ''}</div></div><div class="acts"><button type="button" class="icon-btn" data-edit="${u.mod}:${u.r.id}">수정</button></div></div>`).join('')}</div>` : '<div class="empty">이 날의 기록이 없어요.</div>'}
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">${['overtime','drink','workout','meal','condition'].map(k => `<button type="button" class="btn sm" data-add="${k}" data-date="${calSel}">+ ${M[k].title}</button>`).join('')}</div>
+    </section>
+  </div>`;
+}
+const chipText = ({ mod, r }) => ({ event: (r.time ? r.time.slice(0, 5) + ' ' : '') + r.title, overtime: '야근' + (r.hours ? ' ' + r.hours + 'h' : ''), drink: '술 ' + (r.with || ''), clinic: r.place, lesson: r.subject, show: r.title, orchestra: '합주', workout: r.kind, task: '마감 ' + r.title }[mod] || '');
+
+function pageHealth() {
+  const pi = periodInfo();
+  const t = today(), last14 = addDays(t, -13);
+  const cond = sorted('condition', false).filter(r => r.date >= last14);
+  const skin = sorted('skin', false).filter(r => r.date >= last14);
+  const periodTop = pi ? `<div class="notice">다음 예정일 <b>${fmtDay(pi.next)}</b> (${pi.dday > 0 ? 'D-' + pi.dday : pi.dday === 0 ? '오늘' : '진행 중일 수 있음'}) · 평균 주기 ${pi.cycle}일 · 기간 ${pi.len}일${pi.measured ? '' : ' <span class="muted">(기록 2회 이상부터 정확해져요)</span>'}</div>` : '';
+  return `${pageHead('Health & Beauty', '건강·뷰티 관리')}
+  <section class="card" style="margin-bottom:16px"><div class="card-head"><h2>최근 2주 컨디션 · 피부</h2><span class="small muted">1 최악 — 5 최상</span></div>
+    ${lineChart([{ name: '컨디션', color: 'var(--c-health)', pts: cond.map(r => [r.date, num(r.score)]) }, { name: '피부', color: 'var(--c-hobby)', pts: skin.map(r => [r.date, num(r.score)]) }], last14, t)}
+  </section>
+  <div class="grid">
+    ${moduleCard('condition')}
+    ${moduleCard('skin')}
+    ${moduleCard('meal')}
+    ${moduleCard('workout')}
+    ${moduleCard('clinic')}
+    ${moduleCard('period', { top: periodTop, when: r => r.start.slice(2) })}
+  </div>`;
+}
+
+function pageSchedule() {
+  const ym = today().slice(0, 7);
+  const drinks = data.drink.filter(r => (r.date || '').startsWith(ym));
+  const ot = data.overtime.filter(r => (r.date || '').startsWith(ym));
+  const otHours = ot.reduce((s, r) => s + num(r.hours), 0);
+  const t = today();
+  const future = sorted('event', false).filter(r => r.date >= t);
+  const past = sorted('event').filter(r => r.date < t);
+  return `${pageHead('Schedule', '일정·약속 매니징')}
+  <div class="stats">
+    <div class="stat"><div class="k">예정된 일정</div><div class="v">${future.length}</div><div class="d">오늘 이후</div></div>
+    <div class="stat"><div class="k">이번 달 야근</div><div class="v">${ot.length}일</div><div class="d">총 ${otHours}시간</div></div>
+    <div class="stat"><div class="k">이번 달 술자리</div><div class="v">${drinks.length}회</div><div class="d">${drinks.filter(r => r.amount === '과음').length}회 과음</div></div>
+    <div class="stat"><div class="k">이번 달 친구 약속</div><div class="v">${data.event.filter(r => (r.date || '').startsWith(ym) && ['친구','약속','데이트'].includes(r.kind)).length}</div><div class="d">약속·친구·데이트</div></div>
+  </div>
+  <div class="grid">
+    ${moduleCard('event', { rows: future, empty: '예정된 일정이 없어요.', when: r => r.date.slice(5).replace('-', '/') })}
+    ${moduleCard('overtime')}
+    ${moduleCard('drink')}
+    <section class="card"><div class="card-head"><h2>지난 일정</h2></div>
+      ${past.length ? `<div class="list">${past.slice(0, 8).map(r => `<div class="row"><div class="when">${r.date.slice(2)}</div><div class="what"><div>${M.event.head(r)}</div><div class="sub">${M.event.sub(r)}</div></div><div class="acts"><button type="button" class="icon-btn" data-edit="event:${r.id}">수정</button></div></div>`).join('')}</div>` : '<div class="empty">지난 일정이 여기 쌓여요.</div>'}
+    </section>
+  </div>`;
+}
+
+function pageHobby() {
+  const y = today().slice(0, 4);
+  const done = data.book.filter(r => r.status === '완독' && (r.finished || '').startsWith(y)).length;
+  const shows = data.show.filter(r => (r.date || '').startsWith(y)).length;
+  const lessons = data.lesson.filter(r => (r.date || '').startsWith(y));
+  const orch = data.orchestra.filter(r => (r.date || '').startsWith(y));
+  const att = orch.length ? Math.round(orch.filter(r => r.attend !== '결석').length / orch.length * 100) : null;
+  const bookOrder = { '읽는 중': 0, '읽고 싶음': 1, '완독': 2, '중단': 3 };
+  const books = [...data.book].sort((a, b) => (bookOrder[a.status] ?? 9) - (bookOrder[b.status] ?? 9) || String(b.finished || '').localeCompare(String(a.finished || '')));
+  return `${pageHead('Hobby & Culture', '취미·문화 활동')}
+  <div class="stats">
+    <div class="stat"><div class="k">${y} 완독</div><div class="v">${done}권</div><div class="d">읽는 중 ${data.book.filter(r => r.status === '읽는 중').length}권</div></div>
+    <div class="stat"><div class="k">${y} 관람</div><div class="v">${shows}회</div><div class="d">전시·공연</div></div>
+    <div class="stat"><div class="k">${y} 레슨</div><div class="v">${lessons.length}회</div><div class="d">${won(lessons.reduce((s, r) => s + num(r.cost), 0)) || '0원'}</div></div>
+    <div class="stat"><div class="k">오케스트라 출석률</div><div class="v">${att == null ? '—' : att + '%'}</div><div class="d">${orch.length}회 중</div></div>
+  </div>
+  <div class="grid">
+    ${moduleCard('book', { rows: books, when: r => r.status === '완독' && r.finished ? r.finished.slice(2) : '', headHtml: r => `${esc(r.title)}${r.author ? ` <span class="muted">— ${esc(r.author)}</span>` : ''} <span class="pill ${r.status === '읽는 중' ? 'acc' : r.status === '완독' ? 'good' : ''}">${esc(r.status || '')}</span>` })}
+    ${moduleCard('lesson')}
+    ${moduleCard('show')}
+    ${moduleCard('orchestra')}
+  </div>`;
+}
+
+function pageCareer() {
+  const rows = salaryRows();
+  const cur = data.company.filter(r => !r.left);
+  const t = today();
+  const tasks = [...data.task].sort((a, b) => (a.status === '완료') - (b.status === '완료') || String(a.due || '9').localeCompare(String(b.due || '9')));
+  const first = rows[0], last = rows[rows.length - 1];
+  const cagr = rows.length > 1 && num(first.base) ? (Math.pow(num(last.base) / num(first.base), 1 / (last.year - first.year || 1)) - 1) * 100 : null;
+  const table = rows.length ? `<div class="tbl-wrap"><table>
+    <thead><tr><th>연도</th><th>계약 연봉</th><th>상승률</th><th>성과급</th><th>복지비</th><th>총보상</th><th>총보상 상승</th><th>월 실수령</th><th>원천징수</th><th>정산</th></tr></thead>
+    <tbody>${[...rows].reverse().map(r => `<tr>
+      <td><button type="button" class="icon-btn" data-edit="salary:${r.id}" style="color:var(--ink);font-family:var(--mono)">${r.year}</button><div class="small muted" style="font-family:var(--body)">${esc(r.company || '')}</div></td>
+      <td>${man(num(r.base))}</td><td class="${r.baseGrowth >= 0 ? 'up' : 'down'}">${r.baseGrowth == null ? '—' : pct(r.baseGrowth)}</td>
+      <td>${r.bonus ? man(r.bonus) : '—'}</td><td>${r.welfare ? man(r.welfare) : '—'}</td><td>${man(r.total)}</td>
+      <td class="${r.totalGrowth >= 0 ? 'up' : 'down'}">${r.totalGrowth == null ? '—' : pct(r.totalGrowth)}</td>
+      <td>${r.net ? won(r.net) : '—'}</td><td>${r.withheld ? man(r.withheld) : '—'}</td>
+      <td class="${num(r.refund) >= 0 ? 'up' : 'down'}">${r.refund ? (num(r.refund) > 0 ? '+' : '') + man(r.refund) : '—'}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">연도별 연봉·성과급·복지비·실수령액·원천징수를 기록하면 상승률이 자동 계산돼요.</div>';
+  return `${pageHead('Career', '커리어 관리')}
+  <div class="stats">
+    <div class="stat"><div class="k">현재 소속</div><div class="v" style="font-family:var(--body);font-size:18px">${esc(cur[0]?.name || '—')}</div><div class="d">${cur[0] ? `${esc(cur[0].role || '')} · ${cur[0].joined ? Math.floor(diffDays(cur[0].joined, t) / 365.25 * 10) / 10 + '년차' : ''}` : '재직 회사를 등록하세요'}</div></div>
+    <div class="stat"><div class="k">올해 총보상</div><div class="v">${last ? man(last.total) : '—'}</div><div class="d">${last ? `연봉+성과급+복지 (${last.year})` : ''}</div></div>
+    <div class="stat"><div class="k">연평균 연봉 상승률</div><div class="v">${cagr == null ? '—' : pct(cagr)}</div><div class="d">${rows.length > 1 ? `${first.year}→${last.year} CAGR` : '2개 연도부터'}</div></div>
+    <div class="stat"><div class="k">진행 중 업무</div><div class="v">${data.task.filter(r => r.status === '진행 중').length}</div><div class="d">마감 지남 ${data.task.filter(r => r.status !== '완료' && r.due && r.due < t).length}건</div></div>
+  </div>
+  <section class="card" style="margin-bottom:16px"><div class="card-head"><h2>연도별 보상</h2><button type="button" class="btn sm" data-add="salary">+ 연도 추가</button></div>
+    ${rows.length ? barChart(rows) : ''}
+    ${table}
+  </section>
+  <div class="grid">
+    ${moduleCard('task', { rows: tasks, when: r => r.due ? r.due.slice(5).replace('-', '/') : '', headHtml: r => `${esc(r.title)} <span class="pill ${r.status === '완료' ? 'good' : r.due && r.due < t ? 'bad' : r.status === '진행 중' ? 'acc' : ''}">${esc(r.status || '')}</span>` })}
+    ${moduleCard('company')}
+  </div>`;
+}
+
+function pageMoney() {
+  const ym = today().slice(0, 7);
+  const by = monthSpend(ym);
+  const total = Object.values(by).reduce((a, b) => a + b, 0);
+  const max = Math.max(1, ...Object.values(by));
+  const last = salaryRows().slice(-1)[0];
+  const shop = [...data.shop].sort((a, b) => (!!a.bought - !!b.bought) || ['꼭 필요','있으면 좋음','위시'].indexOf(a.priority) - ['꼭 필요','있으면 좋음','위시'].indexOf(b.priority));
+  const wishSum = data.shop.filter(r => !r.bought).reduce((s, r) => s + num(r.price), 0);
+  return `${pageHead('Money & Style', '머니·스타일')}
+  <div class="stats">
+    <div class="stat"><div class="k">${+ym.slice(5)}월 지출</div><div class="v">${man(total)}원</div><div class="d">${last?.net ? `월 실수령의 ${Math.round(total / num(last.net) * 100)}%` : '실수령액을 넣으면 비율 표시'}</div></div>
+    <div class="stat"><div class="k">쇼핑 리스트</div><div class="v">${data.shop.filter(r => !r.bought).length}개</div><div class="d">예상 ${man(wishSum)}원</div></div>
+    <div class="stat"><div class="k">스타일링 노트</div><div class="v">${data.style.length}</div><div class="d">저장한 룩</div></div>
+  </div>
+  <section class="card" style="margin-bottom:16px"><div class="card-head"><h2>${+ym.slice(5)}월 지출 구성</h2><span class="small muted">병원·레슨·관람·구매완료 쇼핑·기타 지출 합산</span></div>
+    ${total ? Object.entries(by).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="bar-row"><span>${esc(k)}</span><div class="bar-track"><div class="bar-fill" style="width:${v / max * 100}%;background:var(--c-money)"></div></div><span class="num" style="text-align:right">${won(v)}</span></div>`).join('') : '<div class="empty">이번 달 비용이 기록되면 분류별로 모아 보여드려요.</div>'}
+  </section>
+  <div class="grid">
+    ${moduleCard('shop', { rows: shop, when: r => r.bought ? '구매' : '', headHtml: r => `${r.bought ? `<s class="muted">${esc(r.item)}</s>` : esc(r.item)} ${r.priority === '꼭 필요' && !r.bought ? '<span class="pill warn">꼭 필요</span>' : ''}${r.link ? ` <a href="${esc(r.link)}" target="_blank" rel="noopener" class="small">링크</a>` : ''}`, limit: 10 })}
+    ${moduleCard('style', { when: () => '' })}
+    ${moduleCard('spend')}
+  </div>`;
+}
+
+// ───────── 차트 ─────────
+function lineChart(series, from, to) {
+  if (!series.some(s => s.pts.length)) return '<div class="empty">컨디션·피부 점수를 기록하면 2주 추이가 그려져요.</div>';
+  const W = 640, H = 170, L = 28, R = 12, T = 12, B = 26, n = diffDays(from, to);
+  const x = d => L + (W - L - R) * diffDays(from, d) / n, y = v => T + (H - T - B) * (5 - v) / 4;
+  let g = '';
+  for (let v = 1; v <= 5; v++) g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  for (let i = 0; i <= n; i += 2) { const d = addDays(from, i); g += `<text x="${x(d)}" y="${H - 6}" text-anchor="middle" font-size="11" fill="var(--muted)">${+d.slice(5, 7)}/${+d.slice(8)}</text>`; }
+  for (const s of series) {
+    if (!s.pts.length) continue;
+    g += `<polyline fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" points="${s.pts.map(([d, v]) => `${x(d)},${y(v)}`).join(' ')}"/>`;
+    g += s.pts.map(([d, v]) => `<circle cx="${x(d)}" cy="${y(v)}" r="4" fill="${s.color}" stroke="var(--panel)" stroke-width="2"/><circle cx="${x(d)}" cy="${y(v)}" r="12" fill="transparent" data-tip="${esc(`${fmtDay(d)} ${s.name} ${v} (${RATING5[v]})`)}"/>`).join('');
+  }
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="최근 2주 컨디션과 피부 점수">${g}</svg><div class="tip" hidden></div></div>
+    <div class="legend">${series.map(s => `<span><i class="swatch" style="background:${s.color}"></i>${s.name}</span>`).join('')}</div>`;
+}
+function barChart(rows) {
+  const W = 640, H = 200, L = 46, R = 8, T = 22, B = 26;
+  const max = Math.max(...rows.map(r => r.total)) * 1.1 || 1;
+  const bw = Math.min(56, (W - L - R) / rows.length * 0.6), step = (W - L - R) / rows.length;
+  const y = v => T + (H - T - B) * (1 - v / max);
+  const parts = [['base', '계약 연봉', 'var(--c-career)'], ['bonus', '성과급', 'var(--c-money)'], ['welfare', '복지비', 'var(--c-hobby)']];
+  let g = '';
+  for (let k = 0; k <= 4; k++) { const v = max / 1.1 * k / 4; g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="10.5" fill="var(--muted)">${man(v)}</text>`; }
+  rows.forEach((r, i) => {
+    const cx = L + step * i + step / 2; let acc = 0;
+    parts.forEach(([k, name, c], j) => {
+      const v = num(r[k]); if (!v) return;
+      const y1 = y(acc + v), h = y(acc) - y1 - (acc ? 2 : 0);
+      g += `<rect x="${cx - bw / 2}" y="${y1}" width="${bw}" height="${Math.max(0, h)}" rx="${j === 0 && !num(r.bonus) && !num(r.welfare) ? 4 : 0}" fill="${c}" data-tip="${esc(`${r.year} ${name} ${won(v)}`)}"/>`;
+      acc += v;
+    });
+    g += `<text x="${cx}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--muted)">${r.year}</text>`;
+    if (r.totalGrowth != null) g += `<text x="${cx}" y="${y(r.total) - 6}" text-anchor="middle" font-size="11" fill="var(--ink)">${pct(r.totalGrowth)}</text>`;
+  });
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="연도별 총보상 누적 막대">${g}</svg><div class="tip" hidden></div></div>
+    <div class="legend" style="margin-bottom:10px">${parts.map(([, n, c]) => `<span><i class="swatch" style="background:${c}"></i>${n}</span>`).join('')}<span>막대 위 숫자 = 총보상 전년 대비</span></div>`;
+}
+function wireCharts() {
+  document.querySelectorAll('.chart').forEach(ch => {
+    const tip = ch.querySelector('.tip');
+    ch.addEventListener('pointerover', e => {
+      const t = e.target.closest('[data-tip]'); if (!t) return;
+      const b = t.getBoundingClientRect(), c = ch.getBoundingClientRect();
+      tip.textContent = t.dataset.tip; tip.hidden = false;
+      tip.style.left = (b.left + b.width / 2 - c.left) + 'px'; tip.style.top = (b.top - c.top) + 'px';
+    });
+    ch.addEventListener('pointerout', e => { if (e.target.closest('[data-tip]')) tip.hidden = true; });
+  });
+}
+
+// ───────── 입력 폼 ─────────
+let editing = null;
+function openForm(mod, id, preset = {}) {
+  const m = M[mod];
+  const rec = id ? data[mod].find(r => r.id === id) : null;
+  editing = { mod, id: rec?.id || null };
+  const v = rec || { ...preset };
+  if (!rec) for (const [k, , type] of m.fields) if (type === 'date' && k === m.date && !v[k]) v[k] = today();
+  if (!rec && mod === 'salary') v.year = new Date().getFullYear();
+  const f = $('#dlgForm');
+  f.innerHTML = `<div class="card-head" style="margin:0"><h2><span class="swatch" style="background:${m.color}"></span>${m.title} ${rec ? '수정' : '기록'}</h2><button type="button" class="icon-btn" data-close aria-label="닫기">닫기</button></div>
+  <div class="fgrid">${m.fields.map(([k, label, type, req, opts]) => {
+    const val = v[k] ?? '';
+    const idA = `f_${mod}_${k}`;
+    const full = ['textarea'].includes(type) || ['menu','title','item','memo','review','content','result','items','tip'].includes(k) ? 'full' : '';
+    if (type === 'rating') return `<div class="f ${full}" style="display:grid;gap:4px"><span class="small muted">${label}</span><div class="rating" data-rating="${k}">${[1,2,3,4,5].map(n => `<button type="button" aria-pressed="${+val === n}" data-v="${n}" title="${RATING5[n]}">${n}</button>`).join('')}</div><input type="hidden" name="${k}" value="${esc(val)}"></div>`;
+    if (type === 'check') return `<label class="chk ${full}"><input type="checkbox" id="${idA}" name="${k}" ${val ? 'checked' : ''}> ${label}</label>`;
+    if (type === 'select') return `<label class="f ${full}" for="${idA}">${label}<select id="${idA}" name="${k}"><option value="">선택</option>${opts.map(o => `<option ${o === val ? 'selected' : ''}>${o}</option>`).join('')}</select></label>`;
+    if (type === 'textarea') return `<label class="f full" for="${idA}">${label}<textarea id="${idA}" name="${k}">${esc(val)}</textarea></label>`;
+    return `<label class="f ${full}" for="${idA}">${label}${req ? ' *' : ''}<input id="${idA}" name="${k}" type="${type === 'number' ? 'number' : type}" ${type === 'number' ? 'step="any" inputmode="decimal"' : ''} value="${esc(val)}" ${req ? 'required' : ''}></label>`;
+  }).join('')}</div>
+  <div class="dlg-foot"><div id="delZone">${rec ? '<button type="button" class="btn danger" data-del>삭제</button>' : ''}</div>
+    <div style="display:flex;gap:8px"><button type="button" class="btn" data-close>취소</button><button type="submit" class="btn primary">저장</button></div></div>`;
+  $('#dlg').showModal();
+  f.querySelector('input:not([type=hidden]),select,textarea')?.focus();
+}
+function openProfile() {
+  editing = { mod: '_profile' };
+  $('#dlgForm').innerHTML = `<div class="card-head" style="margin:0"><h2>아티스트 프로필</h2><button type="button" class="icon-btn" data-close>닫기</button></div>
+  <div class="fgrid"><label class="f full" for="p_name">활동명<input id="p_name" name="name" value="${esc(profile.name)}"></label>
+  <label class="f full" for="p_motto">올해의 다짐<input id="p_motto" name="motto" value="${esc(profile.motto)}"></label></div>
+  <div class="dlg-foot"><span></span><div style="display:flex;gap:8px"><button type="button" class="btn" data-close>취소</button><button type="submit" class="btn primary">저장</button></div></div>`;
+  $('#dlg').showModal();
+}
+$('#dlgForm').addEventListener('click', async e => {
+  const rb = e.target.closest('.rating button');
+  if (rb) { const box = rb.parentElement; const inp = box.nextElementSibling; const same = inp.value === rb.dataset.v; inp.value = same ? '' : rb.dataset.v; box.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', !same && b === rb)); return; }
+  if (e.target.closest('[data-close]')) { $('#dlg').close(); return; }
+  if (e.target.closest('[data-del]')) {
+    $('#delZone').innerHTML = `<span class="confirm-bar">정말 삭제할까요? <button type="button" class="btn sm danger" data-del-yes>삭제</button><button type="button" class="btn sm" data-del-no>아니요</button></span>`; return;
+  }
+  if (e.target.closest('[data-del-no]')) { $('#delZone').innerHTML = '<button type="button" class="btn danger" data-del>삭제</button>'; return; }
+  if (e.target.closest('[data-del-yes]')) {
+    const { mod, id } = editing; $('#dlg').close();
+    try { await store.remove(mod, id); toast('삭제했어요'); } catch (err) { toast('삭제 실패: ' + (err?.message || err?.code)); }
+  }
+});
+$('#dlgForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  if (editing.mod === '_profile') { $('#dlg').close(); await store.saveProfile({ name: fd.get('name').trim(), motto: fd.get('motto').trim() }); toast('프로필 저장'); return; }
+  const m = M[editing.mod];
+  const prev = editing.id ? data[editing.mod].find(r => r.id === editing.id) : null;
+  const rec = { id: editing.id || uid(), _ts: prev?._ts || Date.now() };
+  for (const [k, , type] of m.fields) {
+    if (type === 'check') rec[k] = fd.has(k);
+    else { const v = (fd.get(k) ?? '').toString().trim(); if (v !== '') rec[k] = type === 'number' || type === 'rating' ? +v : v; }
+  }
+  if (editing.mod === 'shop' && rec.bought && !rec.boughtOn) rec.boughtOn = today();
+  $('#dlg').close();
+  try { await store.save(editing.mod, rec); toast('저장했어요'); } catch (err) { toast('저장 실패: ' + (err?.message || err?.code)); }
+});
+
+// ───────── 이벤트 ─────────
+document.addEventListener('click', e => {
+  const b = e.target.closest('button,[data-day]'); if (!b) return;
+  if (b.dataset.tab) { tab = b.dataset.tab; try { localStorage.setItem('myagency:tab', tab); } catch {} render(); window.scrollTo(0, 0); }
+  else if (b.dataset.add) openForm(b.dataset.add, null, b.dataset.date ? { [M[b.dataset.add].date]: b.dataset.date } : {});
+  else if (b.dataset.edit) { const [mod, id] = b.dataset.edit.split(':'); openForm(mod, id); }
+  else if (b.dataset.more) { showAll.has(b.dataset.more) ? showAll.delete(b.dataset.more) : showAll.add(b.dataset.more); render(); }
+  else if (b.hasAttribute('data-profile')) openProfile();
+  else if (b.dataset.cal != null) {
+    const dir = +b.dataset.cal;
+    if (!dir) { calMonth = today().slice(0, 7); calSel = today(); }
+    else { const [y, m] = calMonth.split('-').map(Number); const d = new Date(y, m - 1 + dir, 1); calMonth = ymd(d).slice(0, 7); }
+    render();
+  } else if (b.dataset.day) { calSel = b.dataset.day; render(); }
+});
+
+$('#exportBtn').addEventListener('click', async () => {
+  const json = JSON.stringify({ app: 'myagency', exported: new Date().toISOString(), profile, data }, null, 2);
+  try {
+    const dl = await window.claude?.use?.('downloads');
+    if (!dl) throw { code: 'unavailable' };
+    await dl.save({ filename: `myagency-backup-${today()}.json`, data: json });
+    toast('백업 파일을 저장했어요');
+  } catch (err) {
+    if (err?.code === 'declined') return;
+    try { await navigator.clipboard.writeText(json); toast('파일 저장이 안 돼서 백업 내용을 클립보드에 복사했어요'); }
+    catch { toast('백업을 저장할 수 없어요'); }
+  }
+});
+$('#importFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const j = JSON.parse(await file.text());
+    const src = j.data || j; let n = 0;
+    for (const mod of Object.keys(M)) for (const r of (src[mod] || [])) {
+      if (!data[mod].some(x => x.id === r.id)) { await store.save(mod, { ...r, id: r.id || uid() }); n++; }
+    }
+    if (j.profile?.name && !profile.name) await store.saveProfile(j.profile);
+    toast(`${n}건을 불러왔어요`);
+  } catch { toast('백업 파일을 읽지 못했어요. MY AGENCY에서 저장한 JSON인지 확인하세요.'); }
+  e.target.value = '';
+});
+
+initStore();
+</script>
