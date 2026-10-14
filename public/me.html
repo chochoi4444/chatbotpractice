@@ -68,6 +68,10 @@ h2 { font-size: 15px; margin: 0; font-weight: 600; }
 .row .sub { font-size: 12px; color: var(--muted); }
 .row .acts { display: flex; gap: 4px; opacity: .55; }
 .row:hover .acts, .row:focus-within .acts { opacity: 1; }
+.row[data-edit] { cursor: pointer; border-radius: 6px; }
+.row[data-edit]:hover { background: var(--bg); }
+@media (hover: none) { .row .acts { opacity: 1; } }
+.custom-opt { margin-top: 6px; }
 .icon-btn { background: none; border: 0; color: var(--muted); padding: 2px 6px; border-radius: 6px; font-size: 12px; }
 .icon-btn:hover { background: var(--bg); color: var(--ink); }
 .pill { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
@@ -573,7 +577,7 @@ function moduleCard(mod, opts = {}) {
     <div class="card-head"><h2><span class="swatch" style="background:${m.color}"></span>${m.title} <span class="muted small num">${data[mod].length}</span></h2>
     <button type="button" class="btn sm" data-add="${mod}">+ 기록</button></div>
     ${opts.top || ''}
-    ${shown.length ? `<div class="list">${shown.map(r => `<div class="row">
+    ${shown.length ? `<div class="list">${shown.map(r => `<div class="row" data-edit="${mod}:${r.id}" title="눌러서 수정">
       <div class="when">${esc(when(r))}</div>
       <div class="what"><div>${opts.headHtml ? opts.headHtml(r) : m.head(r)}</div>${(() => { const s = m.sub(r); return s ? `<div class="sub">${s}</div>` : ''; })()}</div>
       <div class="acts"><button type="button" class="icon-btn" data-edit="${mod}:${r.id}" aria-label="수정">수정</button></div>
@@ -1214,7 +1218,10 @@ function openForm(mod, id, preset = {}) {
     if (type === 'rating') return `<div class="f ${full}" style="display:grid;gap:4px"><span class="small muted">${label}</span><div class="rating" data-rating="${k}">${[1,2,3,4,5].map(n => `<button type="button" aria-pressed="${+val === n}" data-v="${n}" title="${RATING5[n]}">${n}</button>`).join('')}</div><input type="hidden" name="${k}" value="${esc(val)}"></div>`;
     if (type === 'photo') return assetsApi ? `<div class="f full" style="display:grid;gap:6px"><span class="small muted">${label}</span>${val ? `<img class="thumb" style="width:72px;height:72px" src="/_blob/${esc(val)}" alt="현재 사진">` : ''}<input type="file" id="${idA}" name="${k}__file" accept="image/*"><input type="hidden" name="${k}" value="${esc(val)}"></div>` : `<div class="f full small muted">사진 저장은 claude.ai에 로그인한 상태에서만 쓸 수 있어요.</div>`;
     if (type === 'check') return `<label class="chk ${full}"><input type="checkbox" id="${idA}" name="${k}" ${val ? 'checked' : ''}> ${label}</label>`;
-    if (type === 'select') return `<label class="f ${full}" for="${idA}">${label}<select id="${idA}" name="${k}"><option value="">선택</option>${opts.map(o => `<option ${o === val ? 'selected' : ''}>${o}</option>`).join('')}</select></label>`;
+    if (type === 'select') {
+      const all = [...opts, ...new Set(data[mod].map(r => r[k]).filter(x => x && !opts.includes(x)))];
+      return `<label class="f ${full}" for="${idA}">${label}<select id="${idA}" name="${k}" data-custom-sel><option value="">선택</option>${all.map(o => `<option ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}<option value="__custom">＋ 직접 입력…</option></select><input class="custom-opt" name="${k}__custom" placeholder="새 항목 이름 (예: 발레)" aria-label="${label} 직접 입력" hidden></label>`;
+    }
     if (type === 'textarea') return `<label class="f full" for="${idA}">${label}<textarea id="${idA}" name="${k}">${esc(val)}</textarea></label>`;
     return `<label class="f ${full}" for="${idA}">${label}${req ? ' *' : ''}<input id="${idA}" name="${k}" type="${type === 'number' ? 'number' : type}" ${type === 'number' ? 'step="any" inputmode="decimal"' : ''} value="${esc(val)}" ${req ? 'required' : ''}></label>`;
   }).join('')}</div>
@@ -1267,7 +1274,11 @@ $('#dlgForm').addEventListener('submit', async e => {
   const file = fileField && fd.get(fileField[0] + '__file');
   for (const [k, , type] of m.fields) {
     if (type === 'check') rec[k] = fd.has(k);
-    else { const v = (fd.get(k) ?? '').toString().trim(); if (v !== '') rec[k] = type === 'number' || type === 'rating' ? +v : v; }
+    else {
+      let v = (fd.get(k) ?? '').toString().trim();
+      if (v === '__custom') v = (fd.get(k + '__custom') ?? '').toString().trim();
+      if (v !== '') rec[k] = type === 'number' || type === 'rating' ? +v : v;
+    }
   }
   if (editing.mod === 'shop' && rec.bought && !rec.boughtOn) rec.boughtOn = today();
   if (file && file.size && assetsApi) {
@@ -1284,7 +1295,8 @@ $('#dlgForm').addEventListener('submit', async e => {
 
 // ───────── 이벤트 ─────────
 document.addEventListener('click', e => {
-  const b = e.target.closest('button,[data-day]'); if (!b) return;
+  if (e.target.closest('a,input,select,textarea,label')) return;
+  const b = e.target.closest('button,[data-day],[data-edit]'); if (!b) return;
   if (b.dataset.tab) { tab = b.dataset.tab; try { localStorage.setItem('myagency:tab', tab); } catch {} render(); window.scrollTo(0, 0); }
   else if (b.dataset.add) openForm(b.dataset.add, null, b.dataset.date ? { [M[b.dataset.add].date]: b.dataset.date } : {});
   else if (b.dataset.edit) { const [mod, id] = b.dataset.edit.split(':'); openForm(mod, id); }
@@ -1332,6 +1344,7 @@ document.addEventListener('click', e => {
 });
 
 document.addEventListener('change', e => {
+  if (e.target.matches('[data-custom-sel]')) { const inp = e.target.nextElementSibling; inp.hidden = e.target.value !== '__custom'; if (!inp.hidden) inp.focus(); }
   if (e.target.dataset.take) toggleTake(e.target.dataset.take, e.target.checked);
   if (e.target.dataset.habit) toggleHabit(e.target.dataset.habit, e.target.checked);
   if (e.target.id === 'cmpA') { cmpA = e.target.value; render(); }
