@@ -8,7 +8,7 @@
   --bg: #f6f4f7; --panel: #ffffff; --ink: #221d26; --muted: #6f6776; --line: #e4dfe7;
   --accent: #8a3d6b; --accent-ink: #ffffff; --accent-soft: #f3e6ee;
   --good: #2f7a52; --warn: #a8661b; --bad: #b3363a;
-  --c-health: #c2416c; --c-hobby: #3b6fb6; --c-sched: #8a5cc2; --c-career: #2f7a6a; --c-money: #b07a1f;
+  --c-health: #c2416c; --c-hobby: #3b6fb6; --c-sched: #8a5cc2; --c-career: #2f7a6a; --c-money: #b07a1f; --c-life: #4d7f2a; --c-style: #a4572f;
   --display: "Gowun Batang", "Noto Serif KR", serif;
   --body: "IBM Plex Sans KR", -apple-system, "Noto Sans KR", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -17,13 +17,13 @@
   --bg: #17141a; --panel: #211d25; --ink: #ece7ef; --muted: #a59cab; --line: #36303b;
   --accent: #e08bbb; --accent-ink: #1d1220; --accent-soft: #3a2533;
   --good: #6cc495; --warn: #e0a65a; --bad: #ef7f82;
-  --c-health: #ec7fa3; --c-hobby: #7ea8e8; --c-sched: #b897ea; --c-career: #67c2ad; --c-money: #e0b45e;
+  --c-health: #ec7fa3; --c-hobby: #7ea8e8; --c-sched: #b897ea; --c-career: #67c2ad; --c-money: #e0b45e; --c-life: #9fcf72; --c-style: #e39a73;
   color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #17141a; --panel: #211d25; --ink: #ece7ef; --muted: #a59cab; --line: #36303b;
   --accent: #e08bbb; --accent-ink: #1d1220; --accent-soft: #3a2533;
   --good: #6cc495; --warn: #e0a65a; --bad: #ef7f82;
-  --c-health: #ec7fa3; --c-hobby: #7ea8e8; --c-sched: #b897ea; --c-career: #67c2ad; --c-money: #e0b45e;
+  --c-health: #ec7fa3; --c-hobby: #7ea8e8; --c-sched: #b897ea; --c-career: #67c2ad; --c-money: #e0b45e; --c-life: #9fcf72; --c-style: #e39a73;
   color-scheme: dark; }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.55; }
@@ -149,6 +149,8 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 13px; }
   .profile { grid-template-columns: auto minmax(0, 1fr); }
   .profile .btn { grid-column: 1 / -1; justify-self: start; }
 }
+.photo { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; background: var(--bg); max-width: 100%; }
+.thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; vertical-align: middle; }
 .day .dots { display: none; gap: 2px; flex-wrap: wrap; }
 .day .dots i { width: 6px; height: 6px; border-radius: 50%; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -177,10 +179,12 @@ const GROUPS = [
   { id: 'home', label: '오늘의 브리핑', color: 'var(--accent)' },
   { id: 'calendar', label: '스케줄 캘린더', color: 'var(--c-sched)' },
   { id: 'health', label: '건강·뷰티', color: 'var(--c-health)' },
-  { id: 'schedule', label: '일정·약속', color: 'var(--c-sched)' },
+  { id: 'schedule', label: '일정·D-day', color: 'var(--c-sched)' },
+  { id: 'life', label: '루틴·마음·관계', color: 'var(--c-life)' },
   { id: 'hobby', label: '취미·문화', color: 'var(--c-hobby)' },
   { id: 'career', label: '커리어', color: 'var(--c-career)' },
-  { id: 'money', label: '머니·스타일', color: 'var(--c-money)' },
+  { id: 'money', label: '자산·지출', color: 'var(--c-money)' },
+  { id: 'style', label: '옷장·뷰티템', color: 'var(--c-style)' },
   { id: 'ai', label: 'AI 분석 리포트', color: 'var(--accent)' },
 ];
 const RATING5 = ['', '최악', '나쁨', '보통', '좋음', '최상'];
@@ -190,8 +194,8 @@ const M = {
     ['symptoms','증상','text'], ['memo','메모','textarea'] ],
     head: r => `컨디션 ${stars(r.score)}`, sub: r => [r.sleep && `수면 ${r.sleep}h`, r.weight && `${r.weight}kg`, r.symptoms].filter(Boolean).join(' · ') },
   skin: { g: 'health', title: '피부 상태', date: 'date', fields: [
-    ['date','날짜','date',1], ['score','피부 상태','rating'], ['concern','고민·트러블','text'], ['products','사용 제품/루틴','text'], ['memo','메모','textarea'] ],
-    head: r => `피부 ${stars(r.score)} ${r.concern ? '· ' + r.concern : ''}`, sub: r => r.products || r.memo },
+    ['date','날짜','date',1], ['score','피부 상태','rating'], ['concern','고민·트러블','text'], ['products','사용 제품/루틴','text'], ['photo','피부 사진','photo'], ['memo','메모','textarea'] ],
+    head: r => `${r.photo ? `<img class="thumb" src="/_blob/${esc(r.photo)}" alt=""> ` : ''}피부 ${stars(r.score)} ${r.concern ? '· ' + esc(r.concern) : ''}`, sub: r => r.products || r.memo },
   meal: { g: 'health', title: '식단', date: 'date', fields: [
     ['date','날짜','date',1], ['slot','끼니','select',0,['아침','점심','저녁','간식','야식']], ['menu','메뉴','text',1], ['kcal','칼로리(kcal)','number'], ['memo','메모','text'] ],
     head: r => `${r.slot ? '[' + r.slot + '] ' : ''}${r.menu}`, sub: r => [r.kcal && `${r.kcal}kcal`, r.memo].filter(Boolean).join(' · ') },
@@ -268,12 +272,58 @@ const M = {
     ['dIncome','소득세','number'], ['dLocal','지방소득세','number'], ['dOther','기타 공제(사우회비 등)','number'], ['actual','실제 입금액(다르면 입력)','number'], ['memo','메모','textarea'] ],
     head: r => `${r.month} 명세서${r.company ? ' · ' + esc(r.company) : ''}`, sub: r => { const p = slip(r); return `지급 ${won(p.gross)} · 공제 ${won(p.ded)} · 실수령 ${won(p.net)}`; } },
   report: { g: 'ai', title: 'AI 분석 기록', date: 'date', hidden: true, fields: [['date','날짜','date',1]], head: r => r.title || 'AI 리포트', sub: r => r.engine || '' },
+  habit: { g: 'life', title: '루틴·습관', date: null, fields: [
+    ['name','습관 이름','text',1], ['cat','분야','select',0,['건강','뷰티','공부','취미','마음','기타']], ['target','기준(예: 2L, 30분)','text'], ['paused','잠시 쉬기','check'] ],
+    head: r => esc(r.name), sub: r => [r.cat, r.target, r.paused && '쉬는 중'].filter(Boolean).join(' · ') },
+  habitLog: { g: 'life', title: '습관 체크', date: 'date', hidden: true, fields: [['date','날짜','date',1]], head: () => '', sub: () => '' },
+  mood: { g: 'life', title: '기분·스트레스 일기', date: 'date', fields: [
+    ['date','날짜','date',1], ['mood','기분','rating'], ['stress','스트레스 (5=매우 높음)','rating'], ['why','기분에 영향 준 일','text'], ['grateful','감사한 일 한 줄','text'], ['note','일기','textarea'] ],
+    head: r => `기분 ${stars(r.mood)}${r.stress ? ` · 스트레스 ${r.stress}` : ''}`, sub: r => [r.why, r.grateful && '감사: ' + r.grateful].filter(Boolean).map(esc).join(' · ') },
+  review: { g: 'life', title: '주간·월간 회고', date: 'date', fields: [
+    ['date','작성일','date',1], ['kind','구분','select',0,['주간','월간']], ['score','만족도','rating'], ['good','잘한 것','textarea'], ['bad','아쉬운 것','textarea'], ['next','다음 목표','textarea'] ],
+    head: r => `${r.kind || ''} 회고 ${stars(r.score)}`, sub: r => [r.good && '👍 ' + r.good, r.next && '→ ' + r.next].filter(Boolean).map(esc).join(' · ') },
+  person: { g: 'life', title: '인간관계 노트', date: null, fields: [
+    ['name','이름','text',1], ['rel','관계','select',0,['친구','가족','연인','동료','업계·네트워킹','기타']], ['birthday','생일','date'], ['company','소속','text'],
+    ['contact','연락처·SNS','text'], ['lastMet','마지막으로 만난 날(직접 입력)','date'], ['likes','좋아하는 것·취향','text'], ['memo','메모','textarea'] ],
+    head: r => esc(r.name), sub: r => [r.rel, r.company, r.likes].filter(Boolean).map(esc).join(' · ') },
+  gift: { g: 'life', title: '선물 기록', date: 'date', fields: [
+    ['date','날짜','date',1], ['person','누구','text',1], ['dir','구분','select',0,['준 선물','받은 선물']], ['item','선물','text',1], ['price','가격(원)','number'], ['occasion','계기','text'] ],
+    head: r => `${r.dir === '받은 선물' ? '받음 ←' : '줌 →'} ${esc(r.person)} · ${esc(r.item)}`, sub: r => [r.occasion, r.price && won(r.price)].filter(Boolean).join(' · ') },
+  remind: { g: 'schedule', title: 'D-day·갱신일', date: 'date', fields: [
+    ['title','항목','text',1], ['kind','종류','select',0,['서류 만료(여권·면허)','건강검진','보험·약정 갱신','미용실·네일·시술','기념일','세금·공과금','기타']],
+    ['date','날짜(기준일)','date',1], ['repeat','반복','select',0,['없음','매년','매월','N개월마다']], ['every','N개월(반복이 N개월마다일 때)','number'], ['memo','메모','text'] ],
+    head: r => esc(r.title), sub: r => [r.kind, r.repeat && r.repeat !== '없음' ? (r.repeat === 'N개월마다' ? `${r.every || '?'}개월마다` : r.repeat) : ''].filter(Boolean).join(' · ') },
+  asset: { g: 'money', title: '자산 기록', date: 'month', fields: [
+    ['month','기준 월','month',1], ['kind','종류','select',1,['예적금','주식·ETF','연금(IRP·연금저축)','청약','현금·파킹통장','보증금·부동산','코인·기타 투자','대출(빚)']], ['name','계좌·상품명','text',1], ['amount','잔액(원)','number',1], ['memo','메모','text'] ],
+    head: r => `${esc(r.name)} <span class="muted small">${esc(r.kind || '')}</span>`, sub: r => `${r.month} · ${r.kind === '대출(빚)' ? '-' : ''}${won(r.amount)}` },
+  fixed: { g: 'money', title: '고정지출·구독', date: null, fields: [
+    ['name','항목','text',1], ['cat','분류','select',0,['구독(OTT·앱)','보험','통신','주거·관리비','대출 이자','레슨·회비','연금·저축 자동이체','기부','기타']], ['amount','금액(원)','number',1],
+    ['cycle','주기','select',0,['매월','매년']], ['payDay','결제일(일)','number'], ['card','결제 수단','text'], ['endDate','약정·만기일','date'], ['stopped','해지함','check'] ],
+    head: r => `${r.stopped ? `<s class="muted">${esc(r.name)}</s>` : esc(r.name)}`, sub: r => [r.cat, `${r.cycle || '매월'} ${won(r.amount)}`, r.payDay && `${r.payDay}일 결제`, r.card, r.endDate && `만기 ${r.endDate}`].filter(Boolean).map(String).join(' · ') },
+  deduct: { g: 'money', title: '연말정산 준비함', date: 'date', fields: [
+    ['date','날짜','date',1], ['cat','공제 항목','select',1,['의료비','교육비','기부금','월세','연금저축·IRP','주택청약','안경·렌즈','기타']], ['what','내용','text',1], ['amount','금액(원)','number',1], ['receipt','영수증 챙김','check'] ],
+    head: r => esc(r.what), sub: r => [r.cat, won(r.amount), r.receipt ? '영수증 ✓' : '영수증 미확인'].filter(Boolean).join(' · ') },
+  win: { g: 'career', title: '성과 기록장', date: 'date', fields: [
+    ['date','날짜','date',1], ['title','한 일','text',1], ['metric','숫자로 된 성과','text'], ['feedback','받은 칭찬·피드백','text'], ['tags','역량 태그(쉼표로)','text'] ],
+    head: r => esc(r.title), sub: r => [r.metric && '📈 ' + r.metric, r.feedback && '💬 ' + r.feedback, r.tags].filter(Boolean).map(esc).join(' · ') },
+  cert: { g: 'career', title: '자격증·교육', date: 'date', fields: [
+    ['name','이름','text',1], ['kind','구분','select',0,['자격증','어학','교육·강의','컨퍼런스·세미나','학위']], ['org','발급·주최','text'], ['date','취득·수료일','date'],
+    ['score','점수·등급','text'], ['expire','만료일','date'], ['cost','비용(원)','number'], ['memo','메모','text'] ],
+    head: r => esc(r.name), sub: r => [r.kind, r.org, r.score, r.expire && `만료 ${r.expire}`].filter(Boolean).map(esc).join(' · ') },
+  closet: { g: 'style', title: '옷장', date: 'bought', fields: [
+    ['item','아이템','text',1], ['cat','종류','select',0,['아우터','상의','하의','원피스','신발','가방','액세서리','기타']], ['color','색','text'], ['brand','브랜드','text'],
+    ['season','계절','select',0,['사계절','봄·가을','여름','겨울']], ['bought','구매일','date'], ['price','가격(원)','number'], ['memo','코디 메모','text'] ],
+    head: r => esc(r.item), sub: r => [r.cat, r.color, r.brand, r.season].filter(Boolean).map(esc).join(' · ') },
+  cosme: { g: 'style', title: '화장품 재고', date: 'opened', fields: [
+    ['name','제품','text',1], ['cat','종류','select',0,['스킨케어','선케어','메이크업','헤어','바디','향수']], ['brand','브랜드','text'], ['opened','개봉일','date'],
+    ['pao','개봉 후 사용기한(개월)','number'], ['expire','유통기한','date'], ['done','다 씀','check'], ['rebuy','재구매 의사','select',0,['있음','고민','없음']] ],
+    head: r => `${r.done ? `<s class="muted">${esc(r.name)}</s>` : esc(r.name)}`, sub: r => [r.cat, r.brand, cosmeExp(r) && `사용기한 ${cosmeExp(r)}`, r.rebuy && '재구매 ' + r.rebuy].filter(Boolean).map(String).join(' · ') },
   goal: { g: 'home', title: '올해의 목표', date: null, fields: [
     ['title','목표','text',1], ['area','분야','select',0,['건강','커리어','머니','취미','관계','기타']], ['progress','진행률(%)','number'], ['memo','메모','text'] ],
     head: r => r.title, sub: r => r.area },
 };
 for (const [id, m] of Object.entries(M)) { m.id = id; m.color = GROUPS.find(g => g.id === m.g).color; }
-const CAL_MODS = ['event','overtime','drink','clinic','lesson','show','orchestra','workout','task'];
+const CAL_MODS = ['event','overtime','drink','clinic','lesson','show','orchestra','workout','task','review'];
 
 // ───────── 유틸 ─────────
 const $ = s => document.querySelector(s);
@@ -299,6 +349,7 @@ const LS_KEY = 'myagency:v1';
 const data = Object.fromEntries(Object.keys(M).map(k => [k, []]));
 let store = null; // { save(mod, rec), remove(mod, id) }
 let profile = { name: '', motto: '' };
+let assetsApi = null;
 const lsLoad = () => { try { const j = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (j) { for (const k in M) data[k] = j[k] || []; if (j._profile) profile = j._profile; } } catch {} };
 const lsSave = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ ...data, _profile: profile })); } catch {} };
 const localStore = {
@@ -323,6 +374,7 @@ async function initStore() {
     $('#syncState').textContent = '이 브라우저에만 저장됨 (로그인하면 계정에 저장)';
     return;
   }
+  try { assetsApi = await window.claude.use('assets'); } catch {}
   const base = `data/users/${me}`;
   let first = true;
   const pending = new Set(Object.keys(M));
@@ -418,6 +470,65 @@ function slipYear(y) {
 }
 const latestSlip = () => sorted('payslip')[0];
 const activeSupps = () => data.supp.filter(r => !r.stopped || r.stopped > today());
+const addMonths = (s, n) => { const [y, m, d] = s.split('-').map(Number); const last = new Date(y, m - 1 + n + 1, 0).getDate(); return ymd(new Date(y, m - 1 + n, Math.min(d, last))); };
+const cosmeExp = r => { const a = r.opened && num(r.pao) ? addMonths(r.opened, num(r.pao)) : ''; const b = r.expire || ''; return a && b ? (a < b ? a : b) : a || b; };
+// 반복 규칙에 따라 [from, to] 안의 발생일
+function occurrences(date, repeat, every, from, to) {
+  if (!date) return [];
+  const step = repeat === '매년' ? 12 : repeat === '매월' ? 1 : repeat === 'N개월마다' ? Math.max(1, num(every) || 1) : 0;
+  if (!step) return date >= from && date <= to ? [date] : [];
+  const out = []; let k = 0;
+  if (date < from) k = Math.max(0, Math.floor(diffDays(date, from) / 31 / step) - 1);
+  for (let i = 0; i < 400; i++, k++) { const d = addMonths(date, k * step); if (d > to) break; if (d >= from) out.push(d); }
+  return out;
+}
+// 챙길 것: D-day, 생일, 자격증·화장품 만료, 약정 만기, 병원 예약
+function dueItems(from, to) {
+  const out = [];
+  for (const r of data.remind) for (const d of occurrences(r.date, r.repeat, r.every, from, to)) out.push({ d, mod: 'remind', r, label: r.title });
+  for (const r of data.person) if (r.birthday) for (const d of occurrences(r.birthday, '매년', 0, from, to)) out.push({ d, mod: 'person', r, label: `${r.name} 생일` });
+  for (const r of data.cert) if (r.expire >= from && r.expire <= to) out.push({ d: r.expire, mod: 'cert', r, label: `${r.name} 만료` });
+  for (const r of data.cosme) { const e = cosmeExp(r); if (!r.done && e && e >= from && e <= to) out.push({ d: e, mod: 'cosme', r, label: `${r.name} 사용기한` }); }
+  for (const r of data.fixed) if (!r.stopped && r.endDate >= from && r.endDate <= to) out.push({ d: r.endDate, mod: 'fixed', r, label: `${r.name} 약정 만기` });
+  for (const r of data.clinic) if (r.next >= from && r.next <= to) out.push({ d: r.next, mod: 'clinic', r, label: `${r.place} 예약` });
+  return out.sort((a, b) => a.d.localeCompare(b.d));
+}
+function payDays(from, to) {
+  const out = [];
+  for (const r of data.fixed) if (!r.stopped && num(r.payDay) && r.cycle !== '매년') {
+    for (let m = from.slice(0, 7) + '-01'; m <= to; m = addMonths(m, 1)) {
+      const [y, mo] = m.split('-').map(Number); const last = new Date(y, mo, 0).getDate();
+      const d = `${y}-${pad(mo)}-${pad(Math.min(num(r.payDay), last))}`;
+      if (d >= from && d <= to) out.push({ d, mod: 'fixed', r, label: `${r.name} 결제` });
+    }
+  }
+  return out;
+}
+const fixedMonthly = () => data.fixed.filter(r => !r.stopped).reduce((s, r) => s + (r.cycle === '매년' ? num(r.amount) / 12 : num(r.amount)), 0);
+// 계좌(종류+이름)별로 그 달까지의 가장 최근 잔액을 합산. 해지한 계좌는 0원으로 기록
+function netWorthByMonth() {
+  const months = [...new Set(data.asset.map(r => r.month).filter(Boolean))].sort();
+  const rows = sorted('asset', false);
+  return months.map(m => {
+    const lastBy = {};
+    for (const r of rows) if (r.month <= m) lastBy[(r.kind || '') + '|' + (r.name || '')] = r;
+    return [m, Object.values(lastBy).reduce((s, r) => s + (r.kind === '대출(빚)' ? -1 : 1) * num(r.amount), 0)];
+  });
+}
+function lastMetOf(p) {
+  let best = p.lastMet || '';
+  const hit = r => p.name && (r.with || '').includes(p.name);
+  for (const r of data.event) if (hit(r) && r.date <= today() && r.date > best) best = r.date;
+  for (const r of data.drink) if (hit(r) && r.date > best) best = r.date;
+  for (const r of data.gift) if (r.person === p.name && r.date > best) best = r.date;
+  return best;
+}
+function streakOf(logMod, id) {
+  const has = d => (data[logMod].find(r => r.date === d)?.taken || []).includes(id);
+  let d = today(); if (!has(d)) d = addDays(d, -1);
+  let n = 0; while (has(d) && n < 3650) { n++; d = addDays(d, -1); }
+  return n;
+}
 function monthSpend(ym) {
   const by = {};
   const add = (k, v) => { if (v) by[k] = (by[k] || 0) + num(v); };
@@ -426,6 +537,8 @@ function monthSpend(ym) {
   for (const r of data.show) if ((r.date || '').startsWith(ym)) add('관람', r.cost);
   for (const r of data.shop) if (r.bought && (r.boughtOn || '').startsWith(ym)) add('쇼핑', r.price);
   for (const r of data.spend) if ((r.date || '').startsWith(ym)) add(r.cat || '기타', r.amount);
+  for (const r of data.gift) if (r.dir !== '받은 선물' && (r.date || '').startsWith(ym)) add('선물', r.price);
+  const fx = fixedMonthly(); if (fx) add('고정지출(월 환산)', fx);
   return by;
 }
 const countIn = (mod, ym) => data[mod].filter(r => (r[M[mod].date] || '').startsWith(ym)).length;
@@ -443,7 +556,7 @@ function renderTabs() {
 function render() {
   renderTabs();
   const g = GROUPS.find(x => x.id === tab) || GROUPS[0];
-  const fn = { home: pageHome, calendar: pageCalendar, health: pageHealth, schedule: pageSchedule, hobby: pageHobby, career: pageCareer, money: pageMoney, ai: pageAI }[g.id];
+  const fn = { home: pageHome, calendar: pageCalendar, health: pageHealth, schedule: pageSchedule, hobby: pageHobby, career: pageCareer, money: pageMoney, style: pageStyle, life: pageLife, ai: pageAI }[g.id];
   $('#main').innerHTML = fn();
   wireCharts();
 }
@@ -500,16 +613,18 @@ function pageHome() {
     <div class="stat"><div class="k">오늘 컨디션</div><div class="v">${todayCond ? RATING5[todayCond.score] || '기록' : '—'}</div><div class="d">${todaySkin ? '피부 ' + (RATING5[todaySkin.score] || '기록') : '피부 미기록'}</div></div>
     <div class="stat"><div class="k">오늘 식단 · 운동</div><div class="v">${meals.length}끼 · ${workouts.length}회</div><div class="d">${kcal ? kcal.toLocaleString() + ' kcal' : '칼로리 미기록'}</div></div>
     <div class="stat"><div class="k">다음 생리 예정</div><div class="v">${pi ? (pi.dday > 0 ? 'D-' + pi.dday : pi.dday === 0 ? 'D-day' : '진행 중?') : '—'}</div><div class="d">${pi ? `${fmtDay(pi.next)} · 주기 ${pi.cycle}일` : '기록 2회부터 예측'}</div></div>
-    <div class="stat"><div class="k">이번 달</div><div class="v">🍷 ${countIn('drink', ym)} · 야근 ${countIn('overtime', ym)}</div><div class="d">운동 ${countIn('workout', ym)}회 · 지출 ${spend ? man(spend) + '원' : '0원'}</div></div>
+    <div class="stat"><div class="k">이번 달</div><div class="v" style="font-size:18px">술 ${countIn('drink', ym)} · 야근 ${countIn('overtime', ym)}</div><div class="d">운동 ${countIn('workout', ym)}회 · 지출 ${spend ? man(spend) + '원' : '0원'}</div></div>
     <div class="stat"><div class="k">최근 연봉</div><div class="v">${lastSal ? man(lastSal.base) : '—'}</div><div class="d">${lastSal?.baseGrowth != null ? `전년 대비 <span class="${lastSal.baseGrowth >= 0 ? 'up' : 'down'}">${pct(lastSal.baseGrowth)}</span>` : '연도별 연봉을 입력하세요'}</div></div>
   </div>
   <div class="grid">
     <section class="card"><div class="card-head"><h2>다가오는 7일</h2><button type="button" class="btn sm" data-add="event">+ 일정</button></div>
       ${upcoming.length ? `<div class="list">${upcoming.slice(0, 12).map(u => `<div class="row"><div class="when">${fmtDay(u.d)}</div><div class="what"><div>${u.label ? esc(u.label) : M[u.mod].head(u.r)}</div><div class="sub"><span class="swatch" style="background:${M[u.mod].color}"></span> ${M[u.mod].title}</div></div><div class="acts"><button type="button" class="icon-btn" data-edit="${u.mod}:${u.r.id}">수정</button></div></div>`).join('')}</div>` : '<div class="empty">일주일 안에 잡힌 일정이 없어요.</div>'}
     </section>
+    ${dueCard(30)}
+    ${habitCard()}
     <section class="card"><div class="card-head"><h2>빠른 기록</h2></div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${['condition','skin','meal','workout','drink','overtime','event','spend','period','payslip'].map(k => `<button type="button" class="btn sm" data-add="${k}">${M[k].title}</button>`).join('')}</div>
-      <div class="small muted" style="margin-top:12px">영양제 ${(data.suppLog.find(r => r.date === t)?.taken || []).length}/${activeSupps().length} 복용 · 진행 중 업무 ${openTasks.length}건 · 읽는 책 ${reading.length}권 · 위시 ${wish}개</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${['condition','mood','skin','meal','workout','drink','overtime','event','spend','win','period','payslip'].map(k => `<button type="button" class="btn sm" data-add="${k}">${M[k].title}</button>`).join('')}</div>
+      <div class="small muted" style="margin-top:12px">${(() => { const w = parse(t).getDay(); return w === 0 && !data.review.some(r => r.date === t) ? '<button type="button" class="btn sm" data-add="review" style="margin-bottom:8px">일요일이에요 · 이번 주 회고 쓰기</button><br>' : ''; })()}영양제 ${(data.suppLog.find(r => r.date === t)?.taken || []).length}/${activeSupps().length} 복용 · 진행 중 업무 ${openTasks.length}건 · 읽는 책 ${reading.length}권 · 위시 ${wish}개</div>
       ${openTasks.slice(0, 3).map(r => `<div class="small" style="margin-top:6px">• ${esc(r.title)} ${r.due ? `<span class="pill ${diffDays(t, r.due) < 0 ? 'bad' : diffDays(t, r.due) <= 3 ? 'warn' : ''}">마감 ${r.due.slice(5)}</span>` : ''}</div>`).join('')}
     </section>
     ${moduleCard('goal', { when: r => (num(r.progress)) + '%', headHtml: r => `${esc(r.title)}<div class="progress"><i style="width:${Math.min(100, num(r.progress))}%"></i></div>`, empty: '올해 이루고 싶은 목표를 적어보세요.' })}
@@ -523,7 +638,8 @@ function pageCalendar() {
   const per = periodDays();
   const byDay = {};
   for (const mod of CAL_MODS) for (const r of data[mod]) { const d = r[M[mod].date]; if (d) (byDay[d] ||= []).push({ mod, r }); }
-  for (const r of data.clinic) if (r.next) (byDay[r.next] ||= []).push({ mod: 'clinic', r, label: `${r.place} 예약` });
+  const gFrom = ymd(start), gTo = addDays(gFrom, 41);
+  for (const u of [...dueItems(gFrom, gTo), ...payDays(gFrom, gTo)]) (byDay[u.d] ||= []).push(u);
   const cells = [];
   for (let i = 0; i < 42; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i); const s = ymd(d);
@@ -539,7 +655,7 @@ function pageCalendar() {
   const dayLogs = ['condition','skin','meal'].flatMap(mod => data[mod].filter(r => r.date === calSel).map(r => ({ mod, r })));
   return `${pageHead('Schedule', `${y}년 ${mo}월`, `<div class="cal-head"><button type="button" class="btn" data-cal="-1" aria-label="이전 달">‹</button><button type="button" class="btn" data-cal="0">오늘</button><button type="button" class="btn" data-cal="1" aria-label="다음 달">›</button></div>`)}
   <div class="card"><div class="cal-wrap"><div class="cal">${DOW.map(d => `<div class="dow">${d}</div>`).join('')}${cells.join('')}</div></div>
-    <div class="legend">${[['var(--c-sched)','일정·야근·술'],['var(--c-health)','병원·운동'],['var(--c-hobby)','레슨·관람·합주'],['var(--c-career)','업무 마감']].map(([c,l]) => `<span><i class="swatch" style="background:${c}"></i>${l}</span>`).join('')}
+    <div class="legend">${[['var(--c-sched)','일정·야근·술'],['var(--c-health)','병원·운동'],['var(--c-hobby)','레슨·관람·합주'],['var(--c-career)','업무 마감'],['var(--c-money)','결제일·만기'],['var(--c-life)','생일·회고']].map(([c,l]) => `<span><i class="swatch" style="background:${c}"></i>${l}</span>`).join('')}
       <span><i class="swatch" style="background:var(--c-health);height:3px"></i>생리 (점선=예측)</span></div>
   </div>
   <div class="grid" style="margin-top:16px">
@@ -549,7 +665,7 @@ function pageCalendar() {
     </section>
   </div>`;
 }
-const chipText = ({ mod, r }) => ({ event: (r.time ? r.time.slice(0, 5) + ' ' : '') + r.title, overtime: '야근' + (r.hours ? ' ' + r.hours + 'h' : ''), drink: '술 ' + (r.with || ''), clinic: r.place, lesson: r.subject, show: r.title, orchestra: '합주', workout: r.kind, task: '마감 ' + r.title }[mod] || '');
+const chipText = ({ mod, r }) => ({ review: (r.kind || '') + ' 회고', event: (r.time ? r.time.slice(0, 5) + ' ' : '') + r.title, overtime: '야근' + (r.hours ? ' ' + r.hours + 'h' : ''), drink: '술 ' + (r.with || ''), clinic: r.place, lesson: r.subject, show: r.title, orchestra: '합주', workout: r.kind, task: '마감 ' + r.title }[mod] || '');
 
 function pageHealth() {
   const pi = periodInfo();
@@ -562,6 +678,7 @@ function pageHealth() {
     ${lineChart([{ name: '컨디션', color: 'var(--c-health)', pts: cond.map(r => [r.date, num(r.score)]) }, { name: '피부', color: 'var(--c-hobby)', pts: skin.map(r => [r.date, num(r.score)]) }], last14, t)}
   </section>
   <div class="grid">
+    ${photoCompareCard()}
     ${suppCard()}
     ${moduleCard('supp', { rows: [...data.supp].sort((a, b) => (!!a.stopped - !!b.stopped) || String(b.started || '').localeCompare(String(a.started || ''))), when: r => r.stopped ? '중단' : '복용 중', limit: 8 })}
     ${moduleCard('condition')}
@@ -573,6 +690,17 @@ function pageHealth() {
   </div>`;
 }
 
+let cmpA = null, cmpB = null;
+function photoCompareCard() {
+  const ph = sorted('skin', false).filter(r => r.photo);
+  if (!ph.length) return `<section class="card"><div class="card-head"><h2><span class="swatch" style="background:var(--c-health)"></span>피부 사진 비교</h2><button type="button" class="btn sm" data-add="skin">+ 사진 기록</button></div><div class="empty">${assetsApi ? '피부 상태 기록에 사진을 올리면 날짜별로 나란히 비교할 수 있어요.' : '사진 저장은 claude.ai에 로그인한 상태에서만 쓸 수 있어요.'}</div></section>`;
+  const a = ph.find(r => r.id === cmpA) || ph[0], b = ph.find(r => r.id === cmpB) || ph[ph.length - 1];
+  const sel = (id, cur) => `<select id="${id}" class="btn sm" aria-label="비교할 날짜">${ph.map(r => `<option value="${r.id}" ${r.id === cur.id ? 'selected' : ''}>${r.date}</option>`).join('')}</select>`;
+  const fig = r => `<figure style="margin:0;display:grid;gap:4px;min-width:0"><img class="photo" src="/_blob/${esc(r.photo)}" alt="${r.date} 피부 사진"><figcaption class="small muted">${r.date} · ${RATING5[r.score] || '점수 없음'}${r.concern ? ' · ' + esc(r.concern) : ''}</figcaption></figure>`;
+  return `<section class="card"><div class="card-head"><h2><span class="swatch" style="background:var(--c-health)"></span>피부 사진 비교</h2><div style="display:flex;gap:6px">${sel('cmpA', a)}${sel('cmpB', b)}</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${fig(a)}${fig(b)}</div>
+    <div class="small muted" style="margin-top:6px">${diffDays(a.date, b.date)}일 간격</div></section>`;
+}
 function suppCard() {
   const t = today(), act = activeSupps();
   const log = data.suppLog.find(r => r.date === t);
@@ -586,6 +714,30 @@ function suppCard() {
       <input type="checkbox" data-take="${r.id}" ${taken.has(r.id) ? 'checked' : ''} aria-label="${esc(r.name)} 복용">
       <div class="what"><div>${esc(r.name)}</div><div class="sub">${[r.timing, r.dose].filter(Boolean).map(esc).join(' · ')}</div></div>
       <div class="small muted num" title="최근 7일 복용일">7일 ${rate(r.id)}/7</div></label>`).join('')}</div>` : '<div class="empty">아래 “영양제”에 지금 먹고 있는 제품을 등록하면 매일 체크리스트가 생겨요.</div>'}
+  </section>`;
+}
+function habitCard() {
+  const t = today(), act = data.habit.filter(r => !r.paused);
+  const taken = new Set(data.habitLog.find(r => r.date === t)?.taken || []);
+  const last7 = [...Array(7)].map((_, i) => addDays(t, i - 6));
+  return `<section class="card"><div class="card-head"><h2><span class="swatch" style="background:var(--c-life)"></span>오늘 루틴 <span class="muted small num">${act.filter(r => taken.has(r.id)).length}/${act.length}</span></h2><button type="button" class="btn sm" data-add="habit">+ 습관</button></div>
+    ${act.length ? `<div class="list">${act.map(r => { const st = streakOf('habitLog', r.id); return `<label class="row" style="grid-template-columns:24px minmax(0,1fr) auto;cursor:pointer">
+      <input type="checkbox" data-habit="${r.id}" ${taken.has(r.id) ? 'checked' : ''} aria-label="${esc(r.name)} 완료">
+      <div class="what"><div>${esc(r.name)}${r.target ? ` <span class="muted small">${esc(r.target)}</span>` : ''}</div>
+        <div class="sub" aria-label="최근 7일">${last7.map(d => (data.habitLog.find(x => x.date === d)?.taken || []).includes(r.id) ? '●' : '○').join(' ')}</div></div>
+      <div class="small num ${st >= 3 ? 'up' : 'muted'}" title="연속 달성일">${st ? '🔥' + st + '일' : ''}</div></label>`; }).join('')}</div>` : '<div class="empty">물 2L, 아침·저녁 스킨케어, 스트레칭처럼 매일 챙길 습관을 추가하세요.</div>'}
+  </section>`;
+}
+async function toggleHabit(id, on) {
+  const t = today();
+  const log = data.habitLog.find(r => r.date === t) || { id: 'd' + t, date: t, taken: [] };
+  const taken = new Set(log.taken || []); on ? taken.add(id) : taken.delete(id);
+  try { await store.save('habitLog', { ...log, taken: [...taken] }); } catch (err) { toast('저장 실패: ' + (err?.message || err?.code)); }
+}
+function dueCard(days = 30) {
+  const t = today(), items = dueItems(t, addDays(t, days));
+  return `<section class="card"><div class="card-head"><h2><span class="swatch" style="background:var(--c-sched)"></span>${days}일 안에 챙길 것</h2><button type="button" class="btn sm" data-add="remind">+ D-day</button></div>
+    ${items.length ? `<div class="list">${items.slice(0, 10).map(u => { const n = diffDays(t, u.d); return `<div class="row"><div class="when">${fmtDay(u.d)}</div><div class="what"><div>${esc(u.label)}</div><div class="sub">${M[u.mod].title}</div></div><div class="acts" style="opacity:1"><span class="pill ${n <= 3 ? 'bad' : n <= 7 ? 'warn' : ''}">${n ? 'D-' + n : 'D-day'}</span><button type="button" class="icon-btn" data-edit="${u.mod}:${u.r.id}">수정</button></div></div>`; }).join('')}</div>` : '<div class="empty">여권 만료, 건강검진, 보험 갱신, 생일처럼 놓치면 안 되는 날짜를 등록하세요. 인간관계 노트의 생일, 자격증·화장품 만료일도 자동으로 모여요.</div>'}
   </section>`;
 }
 async function toggleTake(id, on) {
@@ -616,6 +768,8 @@ function pageSchedule() {
     <div class="stat"><div class="k">이번 달 친구 약속</div><div class="v">${data.event.filter(r => (r.date || '').startsWith(ym) && ['친구','약속','데이트'].includes(r.kind)).length}</div><div class="d">약속·친구·데이트</div></div>
   </div>
   <div class="grid">
+    ${dueCard(60)}
+    ${moduleCard('remind', { when: r => { const n = occurrences(r.date, r.repeat, r.every, today(), addDays(today(), 3660))[0]; return n ? n.slice(2) : '지남'; } })}
     ${moduleCard('event', { rows: future, empty: '예정된 일정이 없어요.', when: r => r.date.slice(5).replace('-', '/') })}
     ${moduleCard('overtime')}
     ${moduleCard('drink')}
@@ -679,6 +833,8 @@ function pageCareer() {
   ${payslipSection()}
   <div class="grid">
     ${moduleCard('task', { rows: tasks, when: r => r.due ? r.due.slice(5).replace('-', '/') : '', headHtml: r => `${esc(r.title)} <span class="pill ${r.status === '완료' ? 'good' : r.due && r.due < t ? 'bad' : r.status === '진행 중' ? 'acc' : ''}">${esc(r.status || '')}</span>` })}
+    ${moduleCard('win', { top: data.win.length ? '<button type="button" class="btn sm" data-copywins style="margin-bottom:8px">이력서·평가용 텍스트로 복사</button>' : '', empty: '업무를 끝낼 때마다 한 일, 숫자로 된 성과, 받은 칭찬을 한 줄씩 남기세요. 연봉협상·평가·이직 때 바로 꺼내 쓸 수 있어요.' })}
+    ${moduleCard('cert', { when: r => r.date ? r.date.slice(2) : '' })}
     ${moduleCard('company')}
   </div>`;
 }
@@ -708,26 +864,90 @@ function payslipSection() {
 }
 
 function pageMoney() {
-  const ym = today().slice(0, 7);
+  const t = today(), ym = t.slice(0, 7), y = t.slice(0, 4);
   const by = monthSpend(ym);
   const total = Object.values(by).reduce((a, b) => a + b, 0);
   const max = Math.max(1, ...Object.values(by));
   const last = salaryRows().slice(-1)[0];
-  const shop = [...data.shop].sort((a, b) => (!!a.bought - !!b.bought) || ['꼭 필요','있으면 좋음','위시'].indexOf(a.priority) - ['꼭 필요','있으면 좋음','위시'].indexOf(b.priority));
-  const wishSum = data.shop.filter(r => !r.bought).reduce((s, r) => s + num(r.price), 0);
-  return `${pageHead('Money & Style', '머니·스타일')}
+  const netPay = latestSlip() ? slip(latestSlip()).net : num(last?.net);
+  const nw = netWorthByMonth(), cur = nw[nw.length - 1], prev = nw[nw.length - 2];
+  const nwMax = Math.max(1, ...nw.map(([, v]) => Math.abs(v)));
+  const fx = fixedMonthly();
+  const lastAssetMonth = sorted('asset')[0]?.month;
+  const fixedRows = [...data.fixed].sort((a, b) => !!a.stopped - !!b.stopped || num(a.payDay || 99) - num(b.payDay || 99));
+  const dcat = {}; for (const r of data.deduct) if ((r.date || '').startsWith(y)) dcat[r.cat] = (dcat[r.cat] || 0) + num(r.amount);
+  const med = data.clinic.filter(r => (r.date || '').startsWith(y)).reduce((s, r) => s + num(r.cost), 0);
+  if (med) dcat['의료비(병원 기록 자동)'] = med;
+  return `${pageHead('Money', '자산·지출')}
   <div class="stats">
-    <div class="stat"><div class="k">${+ym.slice(5)}월 지출</div><div class="v">${man(total)}원</div><div class="d">${(() => { const n = latestSlip() ? slip(latestSlip()).net : num(last?.net); return n ? `월 실수령의 ${Math.round(total / n * 100)}%` : '실수령액을 넣으면 비율 표시'; })()}</div></div>
-    <div class="stat"><div class="k">쇼핑 리스트</div><div class="v">${data.shop.filter(r => !r.bought).length}개</div><div class="d">예상 ${man(wishSum)}원</div></div>
-    <div class="stat"><div class="k">스타일링 노트</div><div class="v">${data.style.length}</div><div class="d">저장한 룩</div></div>
+    <div class="stat"><div class="k">순자산</div><div class="v">${cur ? man(cur[1]) : '—'}</div><div class="d">${cur ? `${cur[0]} 기준${prev ? ` · 전월 대비 <span class="${cur[1] >= prev[1] ? 'up' : 'down'}">${cur[1] >= prev[1] ? '+' : ''}${man(cur[1] - prev[1])}</span>` : ''}` : '자산을 월 1회 기록하세요'}</div></div>
+    <div class="stat"><div class="k">${+ym.slice(5)}월 지출</div><div class="v">${man(total)}원</div><div class="d">${netPay ? `월 실수령의 ${Math.round(total / netPay * 100)}%` : '실수령액을 넣으면 비율 표시'}</div></div>
+    <div class="stat"><div class="k">월 고정지출</div><div class="v">${man(fx)}원</div><div class="d">${netPay ? `실수령의 ${Math.round(fx / netPay * 100)}%` : ''} · ${data.fixed.filter(r => !r.stopped).length}건</div></div>
+    <div class="stat"><div class="k">${y} 공제 준비</div><div class="v">${man(Object.values(dcat).reduce((a, b) => a + b, 0))}원</div><div class="d">영수증 미확인 ${data.deduct.filter(r => (r.date || '').startsWith(y) && !r.receipt).length}건</div></div>
   </div>
-  <section class="card" style="margin-bottom:16px"><div class="card-head"><h2>${+ym.slice(5)}월 지출 구성</h2><span class="small muted">병원·레슨·관람·구매완료 쇼핑·기타 지출 합산</span></div>
+  <section class="card" style="margin-bottom:16px"><div class="card-head"><h2><span class="swatch" style="background:var(--c-money)"></span>순자산 추이</h2>
+    <div style="display:flex;gap:6px">${lastAssetMonth && lastAssetMonth < ym ? `<button type="button" class="btn sm" data-copyassets="${lastAssetMonth}">${lastAssetMonth} 항목을 이번 달로 복사</button>` : ''}<button type="button" class="btn sm" data-add="asset">+ 자산</button></div></div>
+    ${nw.length ? nw.slice(-12).map(([m, v]) => `<div class="bar-row"><span class="num">${m}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.abs(v) / nwMax * 100}%;background:${v < 0 ? 'var(--bad)' : 'var(--c-money)'}"></div></div><span class="num" style="text-align:right">${man(v)}</span></div>`).join('') : '<div class="empty">예적금, 주식, 연금, 청약, 대출 잔액을 매달 한 번 기록하면 순자산 추이가 그려져요. 다음 달부터는 지난달 항목을 복사해서 금액만 고치면 돼요.</div>'}
+  </section>
+  <section class="card" style="margin-bottom:16px"><div class="card-head"><h2>${+ym.slice(5)}월 지출 구성</h2><span class="small muted">병원·레슨·관람·쇼핑·선물·고정지출·기타 지출 합산</span></div>
     ${total ? Object.entries(by).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="bar-row"><span>${esc(k)}</span><div class="bar-track"><div class="bar-fill" style="width:${v / max * 100}%;background:var(--c-money)"></div></div><span class="num" style="text-align:right">${won(v)}</span></div>`).join('') : '<div class="empty">이번 달 비용이 기록되면 분류별로 모아 보여드려요.</div>'}
   </section>
   <div class="grid">
-    ${moduleCard('shop', { rows: shop, when: r => r.bought ? '구매' : '', headHtml: r => `${r.bought ? `<s class="muted">${esc(r.item)}</s>` : esc(r.item)} ${r.priority === '꼭 필요' && !r.bought ? '<span class="pill warn">꼭 필요</span>' : ''}${r.link ? ` <a href="${esc(r.link)}" target="_blank" rel="noopener" class="small">링크</a>` : ''}`, limit: 10 })}
-    ${moduleCard('style', { when: () => '' })}
+    ${moduleCard('asset', { rows: sorted('asset').filter(r => r.month === (lastAssetMonth || ym)), when: r => r.month.slice(2), empty: '아직 자산 기록이 없어요.', limit: 12 })}
+    ${moduleCard('fixed', { rows: fixedRows, when: r => r.payDay ? r.payDay + '일' : '', limit: 10 })}
+    ${moduleCard('deduct', { top: Object.keys(dcat).length ? `<div style="margin-bottom:8px">${Object.entries(dcat).map(([k, v]) => `<div class="bar-row" style="grid-template-columns:minmax(0,1fr) auto"><span>${esc(k)}</span><span class="num">${won(v)}</span></div>`).join('')}</div>` : '' })}
     ${moduleCard('spend')}
+  </div>`;
+}
+function pageStyle() {
+  const t = today();
+  const shop = [...data.shop].sort((a, b) => (!!a.bought - !!b.bought) || ['꼭 필요','있으면 좋음','위시'].indexOf(a.priority) - ['꼭 필요','있으면 좋음','위시'].indexOf(b.priority));
+  const wishSum = data.shop.filter(r => !r.bought).reduce((s, r) => s + num(r.price), 0);
+  const cosme = [...data.cosme].sort((a, b) => !!a.done - !!b.done || String(cosmeExp(a) || '9').localeCompare(String(cosmeExp(b) || '9')));
+  const soon = data.cosme.filter(r => !r.done && cosmeExp(r) && diffDays(t, cosmeExp(r)) <= 30);
+  const ccount = {}; for (const r of data.closet) ccount[r.cat || '기타'] = (ccount[r.cat || '기타'] || 0) + 1;
+  return `${pageHead('Style & Beauty', '옷장·뷰티템')}
+  <div class="stats">
+    <div class="stat"><div class="k">옷장</div><div class="v">${data.closet.length}벌</div><div class="d">${Object.entries(ccount).map(([k, v]) => k + ' ' + v).join(' · ') || '아이템을 등록하세요'}</div></div>
+    <div class="stat"><div class="k">쇼핑 리스트</div><div class="v">${data.shop.filter(r => !r.bought).length}개</div><div class="d">예상 ${man(wishSum)}원</div></div>
+    <div class="stat"><div class="k">화장품</div><div class="v">${data.cosme.filter(r => !r.done).length}개 사용 중</div><div class="d">${soon.length ? `<span class="down">30일 안에 기한 ${soon.length}개</span>` : '기한 임박 없음'}</div></div>
+    <div class="stat"><div class="k">스타일링 노트</div><div class="v">${data.style.length}</div><div class="d">저장한 룩</div></div>
+  </div>
+  <div class="grid">
+    ${moduleCard('shop', { rows: shop, when: r => r.bought ? '구매' : '', headHtml: r => `${r.bought ? `<s class="muted">${esc(r.item)}</s>` : esc(r.item)} ${r.priority === '꼭 필요' && !r.bought ? '<span class="pill warn">꼭 필요</span>' : ''}${r.link ? ` <a href="${esc(r.link)}" target="_blank" rel="noopener" class="small">링크</a>` : ''}${!r.bought && data.closet.some(c => c.cat && c.cat === r.cat) ? '' : ''}`, limit: 10 })}
+    ${moduleCard('closet', { when: r => r.cat || '', limit: 10 })}
+    ${moduleCard('cosme', { rows: cosme, when: r => { const e = cosmeExp(r); return r.done ? '다 씀' : e ? (diffDays(t, e) < 0 ? '기한 지남' : 'D-' + diffDays(t, e)) : ''; }, limit: 10 })}
+    ${moduleCard('style', { when: () => '' })}
+  </div>`;
+}
+function pageLife() {
+  const t = today(), from = addDays(t, -13);
+  const moods = sorted('mood', false).filter(r => r.date >= from);
+  const people = data.person.map(p => ({ ...p, _last: lastMetOf(p) })).sort((a, b) => String(a._last || '0').localeCompare(String(b._last || '0')));
+  const longNo = people.filter(p => ['친구','가족','업계·네트워킹'].includes(p.rel) && (!p._last || diffDays(p._last, t) > 90));
+  const ym = t.slice(0, 7), mm = data.mood.filter(r => (r.date || '').startsWith(ym));
+  const habits = data.habit.filter(r => !r.paused);
+  const d30 = [...Array(30)].map((_, i) => addDays(t, -i));
+  // 습관을 만든 지 30일이 안 됐으면 만든 날부터 계산
+  const rate = h => { const since = h._ts ? ymd(new Date(h._ts)) : addDays(t, -29); const days = d30.filter(d => d >= since); return days.length ? Math.round(days.filter(d => (data.habitLog.find(x => x.date === d)?.taken || []).includes(h.id)).length / days.length * 100) : 0; };
+  return `${pageHead('Routine · Mind · People', '루틴·마음·관계')}
+  <div class="stats">
+    <div class="stat"><div class="k">${+ym.slice(5)}월 평균 기분</div><div class="v">${mm.length ? r1(avg(mm.filter(r => r.mood).map(r => +r.mood))) ?? '—' : '—'}</div><div class="d">스트레스 평균 ${mm.length ? r1(avg(mm.filter(r => r.stress).map(r => +r.stress))) ?? '—' : '—'}</div></div>
+    <div class="stat"><div class="k">습관 30일 달성률</div><div class="v">${habits.length ? Math.round(avg(habits.map(rate))) + '%' : '—'}</div><div class="d">${habits.length}개 습관</div></div>
+    <div class="stat"><div class="k">오래 못 만난 사람</div><div class="v">${longNo.length}명</div><div class="d">친구·가족·네트워킹 90일 이상</div></div>
+    <div class="stat"><div class="k">최근 회고</div><div class="v">${sorted('review')[0] ? sorted('review')[0].date.slice(5).replace('-', '/') : '—'}</div><div class="d">${sorted('review')[0] ? (sorted('review')[0].kind || '') + ' 회고' : '일요일마다 주간 회고를 써보세요'}</div></div>
+  </div>
+  <section class="card" style="margin-bottom:16px"><div class="card-head"><h2>최근 2주 기분 · 스트레스</h2><button type="button" class="btn sm" data-add="mood">+ 오늘 기분</button></div>
+    ${lineChart([{ name: '기분', color: 'var(--c-life)', pts: moods.filter(r => r.mood).map(r => [r.date, num(r.mood)]) }, { name: '스트레스', color: 'var(--bad)', pts: moods.filter(r => r.stress).map(r => [r.date, num(r.stress)]) }], from, t, '기분과 스트레스를 기록하면 2주 추이가 그려져요.')}
+  </section>
+  <div class="grid">
+    ${habitCard()}
+    ${habits.length ? `<section class="card"><div class="card-head"><h2>습관별 30일 달성률</h2></div>${habits.map(h => `<div class="bar-row"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(h.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${rate(h)}%;background:var(--c-life)"></div></div><span class="num" style="text-align:right">${rate(h)}% · 🔥${streakOf('habitLog', h.id)}</span></div>`).join('')}</section>` : ''}
+    ${moduleCard('mood')}
+    ${moduleCard('review', { empty: '이번 주 잘한 것, 아쉬운 것, 다음 주 목표를 적어보세요. AI 분석에도 반영돼요.' })}
+    ${moduleCard('person', { rows: people, when: p => p._last ? `${diffDays(p._last, t)}일 전` : '기록 없음', headHtml: p => `${esc(p.name)} ${['친구','가족','업계·네트워킹'].includes(p.rel) && (!p._last || diffDays(p._last, t) > 90) ? '<span class="pill warn">연락해 볼까요</span>' : ''}`, limit: 10, top: '<div class="small muted" style="margin-bottom:6px">일정·술자리의 “함께한 사람”에 이름이 있으면 마지막 만난 날이 자동으로 바뀌어요.</div>' })}
+    ${moduleCard('gift')}
+    ${moduleCard('habit', { when: r => r.cat || '' })}
   </div>`;
 }
 
@@ -753,14 +973,16 @@ function buildDigest(days) {
     if (ot) parts.push('야근' + (ot.hours ? ot.hours + 'h' : ''));
     if (SL[d]) parts.push('영양제' + (SL[d][0].taken || []).length + '/' + activeSupps().length);
     if (E[d]) parts.push('일정' + E[d].length + '건');
+    const md = data.mood.find(r => r.date === d); if (md?.mood) parts.push('기분' + md.mood); if (md?.stress) parts.push('스트레스' + md.stress); if (md?.why) parts.push('기분요인:' + md.why);
+    const hl = data.habitLog.find(r => r.date === d); if (hl && data.habit.length) parts.push('습관' + (hl.taken || []).length + '/' + data.habit.filter(r => !r.paused).length);
     if (per.get(d) === 'period') parts.push('생리중');
     if (parts.length) lines.push(d.slice(5) + ' ' + parts.join(', '));
   }
   // 교차 분석 신호(사전 계산)
-  const score = (mod, d) => { const r = data[mod].find(x => x.date === d); return r?.score ? +r.score : null; };
-  const cmp = (label, mod, cond) => {
+  const score = (mod, d, f = 'score') => { const r = data[mod].find(x => x.date === d); return r?.[f] ? +r[f] : null; };
+  const cmp = (label, mod, cond, f = 'score') => {
     const yes = [], no = [];
-    for (let d = from; d <= to; d = addDays(d, 1)) { const v = score(mod, d); if (v == null) continue; (cond(d) ? yes : no).push(v); }
+    for (let d = from; d <= to; d = addDays(d, 1)) { const v = score(mod, d, f); if (v == null) continue; (cond(d) ? yes : no).push(v); }
     return yes.length >= 2 && no.length >= 2 ? `${label}: ${r1(avg(yes))} (n=${yes.length}) vs 그 외 ${r1(avg(no))} (n=${no.length})` : null;
   };
   const drank = d => data.drink.some(r => r.date === d), otOn = d => data.overtime.some(r => r.date === d), wk = d => data.workout.some(r => r.date === d);
@@ -779,6 +1001,11 @@ function buildDigest(days) {
     cmp('생리 기간 컨디션', 'condition', d => per.get(d) === 'period'),
     cmp('생리 기간 피부', 'skin', d => per.get(d) === 'period'),
     cmp('영양제 전부 챙긴 날 컨디션', 'condition', suppAll),
+    cmp('야근한 날 스트레스', 'mood', otOn, 'stress'),
+    cmp('음주 다음날 기분', 'mood', d => drank(addDays(d, -1)), 'mood'),
+    cmp('운동한 날 기분', 'mood', wk, 'mood'),
+    cmp('수면 7시간 이상인 날 스트레스', 'mood', d => (slept(d) ?? 0) >= 7, 'stress'),
+    cmp('습관 절반 이상 지킨 날 컨디션', 'condition', d => { const l = data.habitLog.find(r => r.date === d); const n = data.habit.filter(r => !r.paused).length; return !!l && n > 0 && (l.taken || []).length >= n / 2; }),
   ].filter(Boolean);
   const logged = [...Array(days)].map((_, i) => addDays(from, i)).filter(d => data.suppLog.some(r => r.date === d && (r.taken || []).length)).length;
   const ym = to.slice(0, 7), spend = monthSpend(ym), sal = salaryRows(), ls = latestSlip(), pi = periodInfo();
@@ -803,6 +1030,13 @@ function buildDigest(days) {
     sect('취미', [
       `레슨 ${data.lesson.filter(r => inR(r.date)).length}회, 관람 ${data.show.filter(r => inR(r.date)).length}회, 오케스트라 ${data.orchestra.filter(r => inR(r.date)).length}회(결석 ${data.orchestra.filter(r => inR(r.date) && r.attend === '결석').length})`,
       `읽는 중: ${data.book.filter(r => r.status === '읽는 중').map(r => r.title).join(', ') || '-'} / 기간 내 완독 ${data.book.filter(r => inR(r.finished)).length}권`]),
+    sect('루틴·습관 (최근 기간 달성일)', data.habit.filter(r => !r.paused).map(h => { const n = [...Array(days)].map((_, i) => addDays(from, i)).filter(d => (data.habitLog.find(x => x.date === d)?.taken || []).includes(h.id)).length; return `- ${h.name}${h.target ? '(' + h.target + ')' : ''}: ${n}/${days}일, 현재 연속 ${streakOf('habitLog', h.id)}일`; })),
+    sect('회고', data.review.filter(r => inR(r.date)).map(r => `- ${r.date} ${r.kind || ''} 만족도 ${r.score || '-'} / 잘한 것: ${r.good || '-'} / 아쉬운 것: ${r.bad || '-'} / 다음: ${r.next || '-'}`)),
+    sect('인간관계', [data.person.length && `등록 ${data.person.length}명, 90일 넘게 못 만난 친구·가족·네트워킹 ${data.person.filter(p => ['친구','가족','업계·네트워킹'].includes(p.rel) && (!lastMetOf(p) || diffDays(lastMetOf(p), to) > 90)).length}명`, data.gift.filter(r => inR(r.date)).length && `기간 내 선물 ${data.gift.filter(r => inR(r.date)).length}건`]),
+    sect('자산·고정지출', [netWorthByMonth().length && `순자산 추이(월): ${netWorthByMonth().slice(-6).map(([m, v]) => m + ' ' + man(v)).join(', ')}`, data.fixed.length && `월 고정지출 ${man(fixedMonthly())}원: ${data.fixed.filter(r => !r.stopped).map(r => r.name + ' ' + man(r.cycle === '매년' ? num(r.amount) / 12 : num(r.amount))).join(', ')}`, data.deduct.length && `올해 연말정산 준비 ${man(data.deduct.filter(r => (r.date || '').startsWith(to.slice(0, 4))).reduce((s, r) => s + num(r.amount), 0))}원`]),
+    sect('성과·자기계발', [...data.win.filter(r => inR(r.date)).map(r => `- 성과 ${r.date}: ${r.title}${r.metric ? ' / ' + r.metric : ''}`), ...data.cert.map(r => `- ${r.kind || ''} ${r.name}${r.expire ? ' (만료 ' + r.expire + ')' : ''}`)]),
+    sect('다가오는 챙길 것(60일)', dueItems(to, addDays(to, 60)).map(u => `- ${u.d} ${u.label}`)),
+    sect('뷰티 재고', data.cosme.filter(r => !r.done).map(r => `- ${r.name} ${r.cat || ''}${cosmeExp(r) ? ' 기한 ' + cosmeExp(r) : ''}`)),
     sect('올해 목표', data.goal.map(r => `- ${r.title} (${r.area || '-'}) ${num(r.progress)}%`)),
   ].filter(Boolean).join('\n');
   return { text, from, to, days: lines.length };
@@ -811,7 +1045,7 @@ function aiPrompt(digest) {
   return `당신은 한 사람을 연예인처럼 전담 관리하는 매니저이자 데이터 분석가입니다. 아래는 그 사람이 직접 기록한 생활 데이터입니다.
 
 할 일:
-1. 기록에서 반복되는 패턴과 항목 사이의 연관성을 찾으세요. 예: 음주·야근·수면·운동·생리 주기와 컨디션·피부의 관계, 영양제 복용 꾸준함, 지출 습관, 업무 마감.
+1. 기록에서 반복되는 패턴과 항목 사이의 연관성을 찾으세요. 예: 음주·야근·수면·운동·생리 주기와 컨디션·피부·기분·스트레스의 관계, 습관·영양제 꾸준함, 지출·고정비·순자산 흐름, 업무 마감과 성과, 인간관계, 다가오는 D-day.
 2. 근거가 되는 숫자나 날짜를 반드시 함께 적으세요. "사전 계산된 교차 비교"를 우선 활용하고, 표본(n)이 작으면 확신도를 낮추세요.
 3. 구체적인 "해라(Do)"와 "하지 마라(Don't)"를 주세요. 막연한 조언 말고 이 사람 기록에 근거한 행동으로 쓰세요.
 4. 영양제는 성분 중복, 같이 먹으면 흡수가 떨어지는 조합, 복용 시점을 점검하세요. 확실하지 않으면 약사·의사 상담을 권하세요.
@@ -821,7 +1055,7 @@ function aiPrompt(digest) {
 반드시 아래 JSON 형식으로만 답하세요. 모든 문장은 한국어 존댓말로.
 {
   "headline": "한 문장 총평",
-  "scores": [{"area": "건강|피부|생활리듬|돈|커리어|취미", "score": 0-100 정수, "reason": "한 줄 근거"}],
+  "scores": [{"area": "건강|피부|마음|생활리듬|돈|커리어|관계|취미", "score": 0-100 정수, "reason": "한 줄 근거"}],
   "patterns": [{"title": "발견한 패턴", "evidence": "근거 숫자·날짜", "confidence": "높음|보통|낮음"}],
   "do": [{"action": "해라", "why": "이유(기록 근거)", "area": "분야"}],
   "dont": [{"action": "하지 마라", "why": "이유(기록 근거)", "area": "분야"}],
@@ -910,8 +1144,8 @@ function pageAI() {
 }
 
 // ───────── 차트 ─────────
-function lineChart(series, from, to) {
-  if (!series.some(s => s.pts.length)) return '<div class="empty">컨디션·피부 점수를 기록하면 2주 추이가 그려져요.</div>';
+function lineChart(series, from, to, emptyMsg = '컨디션·피부 점수를 기록하면 2주 추이가 그려져요.') {
+  if (!series.some(s => s.pts.length)) return `<div class="empty">${emptyMsg}</div>`;
   const W = 640, H = 170, L = 28, R = 12, T = 12, B = 26, n = diffDays(from, to);
   const x = d => L + (W - L - R) * diffDays(from, d) / n, y = v => T + (H - T - B) * (5 - v) / 4;
   let g = '';
@@ -922,7 +1156,7 @@ function lineChart(series, from, to) {
     g += `<polyline fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" points="${s.pts.map(([d, v]) => `${x(d)},${y(v)}`).join(' ')}"/>`;
     g += s.pts.map(([d, v]) => `<circle cx="${x(d)}" cy="${y(v)}" r="4" fill="${s.color}" stroke="var(--panel)" stroke-width="2"/><circle cx="${x(d)}" cy="${y(v)}" r="12" fill="transparent" data-tip="${esc(`${fmtDay(d)} ${s.name} ${v} (${RATING5[v]})`)}"/>`).join('');
   }
-  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="최근 2주 컨디션과 피부 점수">${g}</svg><div class="tip" hidden></div></div>
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="최근 2주 ${series.map(s => s.name).join('·')} 점수">${g}</svg><div class="tip" hidden></div></div>
     <div class="legend">${series.map(s => `<span><i class="swatch" style="background:${s.color}"></i>${s.name}</span>`).join('')}</div>`;
 }
 function barChart(rows) {
@@ -967,7 +1201,8 @@ function openForm(mod, id, preset = {}) {
   const rec = id ? data[mod].find(r => r.id === id) : null;
   editing = { mod, id: rec?.id || null };
   const v = rec || { ...preset };
-  if (!rec) for (const [k, , type] of m.fields) if (type === 'date' && k === m.date && !v[k]) v[k] = today();
+  if (!rec) for (const [k, , type] of m.fields) if (k === m.date && !v[k]) { if (type === 'date') v[k] = today(); if (type === 'month') v[k] = today().slice(0, 7); }
+  if (!rec && mod === 'review' && !v.kind) v.kind = parse(today()).getDate() >= 28 ? '월간' : '주간';
   if (!rec && mod === 'salary') v.year = new Date().getFullYear();
   if (!rec && mod === 'payslip' && !v.month) v.month = today().slice(0, 7);
   const f = $('#dlgForm');
@@ -975,8 +1210,9 @@ function openForm(mod, id, preset = {}) {
   <div class="fgrid">${m.fields.map(([k, label, type, req, opts]) => {
     const val = v[k] ?? '';
     const idA = `f_${mod}_${k}`;
-    const full = ['textarea'].includes(type) || ['menu','title','item','memo','review','content','result','items','tip'].includes(k) ? 'full' : '';
+    const full = ['textarea'].includes(type) || ['menu','title','item','memo','review','content','result','items','tip','why','grateful','feedback','metric'].includes(k) ? 'full' : '';
     if (type === 'rating') return `<div class="f ${full}" style="display:grid;gap:4px"><span class="small muted">${label}</span><div class="rating" data-rating="${k}">${[1,2,3,4,5].map(n => `<button type="button" aria-pressed="${+val === n}" data-v="${n}" title="${RATING5[n]}">${n}</button>`).join('')}</div><input type="hidden" name="${k}" value="${esc(val)}"></div>`;
+    if (type === 'photo') return assetsApi ? `<div class="f full" style="display:grid;gap:6px"><span class="small muted">${label}</span>${val ? `<img class="thumb" style="width:72px;height:72px" src="/_blob/${esc(val)}" alt="현재 사진">` : ''}<input type="file" id="${idA}" name="${k}__file" accept="image/*"><input type="hidden" name="${k}" value="${esc(val)}"></div>` : `<div class="f full small muted">사진 저장은 claude.ai에 로그인한 상태에서만 쓸 수 있어요.</div>`;
     if (type === 'check') return `<label class="chk ${full}"><input type="checkbox" id="${idA}" name="${k}" ${val ? 'checked' : ''}> ${label}</label>`;
     if (type === 'select') return `<label class="f ${full}" for="${idA}">${label}<select id="${idA}" name="${k}"><option value="">선택</option>${opts.map(o => `<option ${o === val ? 'selected' : ''}>${o}</option>`).join('')}</select></label>`;
     if (type === 'textarea') return `<label class="f full" for="${idA}">${label}<textarea id="${idA}" name="${k}">${esc(val)}</textarea></label>`;
@@ -986,6 +1222,16 @@ function openForm(mod, id, preset = {}) {
     <div style="display:flex;gap:8px"><button type="button" class="btn" data-close>취소</button><button type="submit" class="btn primary">저장</button></div></div>`;
   $('#dlg').showModal();
   f.querySelector('input:not([type=hidden]),select,textarea')?.focus();
+}
+// 사진은 긴 변 1280px JPEG로 줄여서 올림
+async function shrinkImage(file) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    return await new Promise(res => c.toBlob(b => res(b || file), 'image/jpeg', 0.85));
+  } catch { return file; }
 }
 function openProfile() {
   editing = { mod: '_profile' };
@@ -1005,6 +1251,8 @@ $('#dlgForm').addEventListener('click', async e => {
   if (e.target.closest('[data-del-no]')) { $('#delZone').innerHTML = '<button type="button" class="btn danger" data-del>삭제</button>'; return; }
   if (e.target.closest('[data-del-yes]')) {
     const { mod, id } = editing; $('#dlg').close();
+    const old = data[mod].find(r => r.id === id); const pf = M[mod].fields.find(f => f[2] === 'photo');
+    if (pf && old?.[pf[0]] && assetsApi) assetsApi.delete(old[pf[0]]).catch(() => {});
     try { await store.remove(mod, id); toast('삭제했어요'); } catch (err) { toast('삭제 실패: ' + (err?.message || err?.code)); }
   }
 });
@@ -1015,11 +1263,21 @@ $('#dlgForm').addEventListener('submit', async e => {
   const m = M[editing.mod];
   const prev = editing.id ? data[editing.mod].find(r => r.id === editing.id) : null;
   const rec = { id: editing.id || uid(), _ts: prev?._ts || Date.now() };
+  const fileField = m.fields.find(f => f[2] === 'photo');
+  const file = fileField && fd.get(fileField[0] + '__file');
   for (const [k, , type] of m.fields) {
     if (type === 'check') rec[k] = fd.has(k);
     else { const v = (fd.get(k) ?? '').toString().trim(); if (v !== '') rec[k] = type === 'number' || type === 'rating' ? +v : v; }
   }
   if (editing.mod === 'shop' && rec.bought && !rec.boughtOn) rec.boughtOn = today();
+  if (file && file.size && assetsApi) {
+    toast('사진 올리는 중…');
+    try {
+      const up = await assetsApi.upload(await shrinkImage(file));
+      if (prev?.[fileField[0]] && prev[fileField[0]] !== up.id) assetsApi.delete(prev[fileField[0]]).catch(() => {});
+      rec[fileField[0]] = up.id;
+    } catch (err) { toast('사진 저장 실패: ' + (err?.message || err?.code)); return; }
+  }
   $('#dlg').close();
   try { await store.save(editing.mod, rec); toast('저장했어요'); } catch (err) { toast('저장 실패: ' + (err?.message || err?.code)); }
 });
@@ -1039,6 +1297,16 @@ document.addEventListener('click', e => {
     openForm('payslip', null, { ...rest, month: `${d.getFullYear()}-${pad(d.getMonth() + 1)}` });
   }
   else if (b.hasAttribute('data-ai')) runAnalysis();
+  else if (b.dataset.copyassets) {
+    const ym = today().slice(0, 7);
+    const src = data.asset.filter(r => r.month === b.dataset.copyassets);
+    Promise.all(src.map(({ id, _ts, ...r }) => store.save('asset', { ...r, id: uid(), _ts: Date.now(), month: ym })))
+      .then(() => toast(`${src.length}개 항목을 ${ym}로 복사했어요. 금액만 고치세요`), err => toast('복사 실패: ' + (err?.message || err?.code)));
+  }
+  else if (b.hasAttribute('data-copywins')) {
+    const text = sorted('win').map(r => `• ${r.date} ${r.title}${r.metric ? ` — ${r.metric}` : ''}${r.feedback ? ` (피드백: ${r.feedback})` : ''}`).join('\n');
+    try { navigator.clipboard.writeText(text).then(() => toast('성과 목록을 복사했어요'), () => toast('복사가 안 돼요. 브라우저 권한을 확인하세요')); } catch { toast('복사가 안 돼요'); }
+  }
   else if (b.hasAttribute('data-aicopy')) {
     const text = aiPrompt(buildDigest(aiRange)) + '\n\n(JSON 코드블록 하나로만 답해 주세요.)';
     const box = $('#aiPromptBox'); box.value = text;
@@ -1065,6 +1333,9 @@ document.addEventListener('click', e => {
 
 document.addEventListener('change', e => {
   if (e.target.dataset.take) toggleTake(e.target.dataset.take, e.target.checked);
+  if (e.target.dataset.habit) toggleHabit(e.target.dataset.habit, e.target.checked);
+  if (e.target.id === 'cmpA') { cmpA = e.target.value; render(); }
+  if (e.target.id === 'cmpB') { cmpB = e.target.value; render(); }
   if (e.target.id === 'slipYear') { slipYearSel = e.target.value; render(); }
   if (e.target.name === 'aiRange') aiRange = +e.target.value;
 });
