@@ -181,6 +181,7 @@ const GROUPS = [
   { id: 'hobby', label: '취미·문화', color: 'var(--c-hobby)' },
   { id: 'career', label: '커리어', color: 'var(--c-career)' },
   { id: 'money', label: '머니·스타일', color: 'var(--c-money)' },
+  { id: 'ai', label: 'AI 분석 리포트', color: 'var(--accent)' },
 ];
 const RATING5 = ['', '최악', '나쁨', '보통', '좋음', '최상'];
 const M = {
@@ -255,6 +256,18 @@ const M = {
     ['date','날짜','date',1], ['cat','분류','select',0,['식비','교통','뷰티','패션','문화','건강','선물','기타']], ['what','내용','text',1], ['amount','금액(원)','number',1] ],
     head: r => r.what, sub: r => [r.cat, won(r.amount)].filter(Boolean).join(' · ') },
 
+  supp: { g: 'health', title: '영양제', date: 'started', fields: [
+    ['name','영양제 이름','text',1], ['brand','브랜드','text'], ['dose','1회 용량','text'], ['timing','복용 시점','select',0,['아침 공복','아침 식후','점심','저녁','취침 전','운동 전후']],
+    ['perDay','하루 복용 횟수','number'], ['purpose','목적','text'], ['stock','남은 개수(정)','number'], ['started','복용 시작일','date'], ['stopped','중단일(복용 중이면 비움)','date'], ['memo','메모·체감 효과','textarea'] ],
+    head: r => `${esc(r.name)}${r.brand ? ` <span class="muted">${esc(r.brand)}</span>` : ''}`, sub: r => [r.timing, r.dose, r.purpose, r.stopped ? `${r.stopped} 중단` : (r.stock != null && r.stock !== '' ? `남은 ${r.stock}정${num(r.perDay) ? ` · 약 ${Math.floor(num(r.stock) / num(r.perDay))}일분` : ''}` : '')].filter(Boolean).join(' · ') },
+  suppLog: { g: 'health', title: '영양제 복용 체크', date: 'date', hidden: true, fields: [['date','날짜','date',1]], head: () => '', sub: () => '' },
+  payslip: { g: 'career', title: '월급 명세서', date: 'month', fields: [
+    ['month','지급 월','month',1], ['company','회사','text'],
+    ['pBase','기본급','number'], ['pOT','연장·야간·휴일수당','number'], ['pAllow','직책·기타 수당','number'], ['pMeal','식대(비과세)','number'], ['pCar','자가운전보조금(비과세)','number'], ['pBonus','상여·성과급','number'],
+    ['dPension','국민연금','number'], ['dHealth','건강보험','number'], ['dCare','장기요양보험','number'], ['dEmploy','고용보험','number'],
+    ['dIncome','소득세','number'], ['dLocal','지방소득세','number'], ['dOther','기타 공제(사우회비 등)','number'], ['actual','실제 입금액(다르면 입력)','number'], ['memo','메모','textarea'] ],
+    head: r => `${r.month} 명세서${r.company ? ' · ' + esc(r.company) : ''}`, sub: r => { const p = slip(r); return `지급 ${won(p.gross)} · 공제 ${won(p.ded)} · 실수령 ${won(p.net)}`; } },
+  report: { g: 'ai', title: 'AI 분석 기록', date: 'date', hidden: true, fields: [['date','날짜','date',1]], head: r => r.title || 'AI 리포트', sub: r => r.engine || '' },
   goal: { g: 'home', title: '올해의 목표', date: null, fields: [
     ['title','목표','text',1], ['area','분야','select',0,['건강','커리어','머니','취미','관계','기타']], ['progress','진행률(%)','number'], ['memo','메모','text'] ],
     head: r => r.title, sub: r => r.area },
@@ -384,9 +397,27 @@ function salaryRows() {
     return { ...r, total,
       baseGrowth: prev && num(prev.base) ? (num(r.base) / num(prev.base) - 1) * 100 : null,
       totalGrowth: prev && prevTotal ? (total / prevTotal - 1) * 100 : null,
-      netYear: num(r.net) * 12 };
+      netYear: num(r.net) * 12,
+      slipNet: slipYear(r.year).n ? Math.round(slipYear(r.year).net / slipYear(r.year).n) : 0,
+      slipTax: slipYear(r.year).tax };
   });
 }
+// 월급 명세서 합계: 지급합계 - 공제합계 = 실수령
+const PAY_KEYS = ['pBase','pOT','pAllow','pMeal','pCar','pBonus'];
+const DED_KEYS = ['dPension','dHealth','dCare','dEmploy','dIncome','dLocal','dOther'];
+function slip(r) {
+  const gross = PAY_KEYS.reduce((s, k) => s + num(r[k]), 0);
+  const ded = DED_KEYS.reduce((s, k) => s + num(r[k]), 0);
+  return { gross, ded, net: num(r.actual) || gross - ded, tax: num(r.dIncome) + num(r.dLocal), ins: num(r.dPension) + num(r.dHealth) + num(r.dCare) + num(r.dEmploy) };
+}
+function slipYear(y) {
+  const rows = data.payslip.filter(r => (r.month || '').startsWith(String(y)));
+  const t = { n: rows.length, gross: 0, ded: 0, net: 0, tax: 0, ins: 0 };
+  for (const r of rows) { const p = slip(r); for (const k of ['gross','ded','net','tax','ins']) t[k] += p[k]; }
+  return t;
+}
+const latestSlip = () => sorted('payslip')[0];
+const activeSupps = () => data.supp.filter(r => !r.stopped || r.stopped > today());
 function monthSpend(ym) {
   const by = {};
   const add = (k, v) => { if (v) by[k] = (by[k] || 0) + num(v); };
@@ -412,7 +443,7 @@ function renderTabs() {
 function render() {
   renderTabs();
   const g = GROUPS.find(x => x.id === tab) || GROUPS[0];
-  const fn = { home: pageHome, calendar: pageCalendar, health: pageHealth, schedule: pageSchedule, hobby: pageHobby, career: pageCareer, money: pageMoney }[g.id];
+  const fn = { home: pageHome, calendar: pageCalendar, health: pageHealth, schedule: pageSchedule, hobby: pageHobby, career: pageCareer, money: pageMoney, ai: pageAI }[g.id];
   $('#main').innerHTML = fn();
   wireCharts();
 }
@@ -477,8 +508,8 @@ function pageHome() {
       ${upcoming.length ? `<div class="list">${upcoming.slice(0, 12).map(u => `<div class="row"><div class="when">${fmtDay(u.d)}</div><div class="what"><div>${u.label ? esc(u.label) : M[u.mod].head(u.r)}</div><div class="sub"><span class="swatch" style="background:${M[u.mod].color}"></span> ${M[u.mod].title}</div></div><div class="acts"><button type="button" class="icon-btn" data-edit="${u.mod}:${u.r.id}">수정</button></div></div>`).join('')}</div>` : '<div class="empty">일주일 안에 잡힌 일정이 없어요.</div>'}
     </section>
     <section class="card"><div class="card-head"><h2>빠른 기록</h2></div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${['condition','skin','meal','workout','drink','overtime','event','spend','period'].map(k => `<button type="button" class="btn sm" data-add="${k}">${M[k].title}</button>`).join('')}</div>
-      <div class="small muted" style="margin-top:12px">진행 중 업무 ${openTasks.length}건 · 읽는 책 ${reading.length}권 · 위시 ${wish}개</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${['condition','skin','meal','workout','drink','overtime','event','spend','period','payslip'].map(k => `<button type="button" class="btn sm" data-add="${k}">${M[k].title}</button>`).join('')}</div>
+      <div class="small muted" style="margin-top:12px">영양제 ${(data.suppLog.find(r => r.date === t)?.taken || []).length}/${activeSupps().length} 복용 · 진행 중 업무 ${openTasks.length}건 · 읽는 책 ${reading.length}권 · 위시 ${wish}개</div>
       ${openTasks.slice(0, 3).map(r => `<div class="small" style="margin-top:6px">• ${esc(r.title)} ${r.due ? `<span class="pill ${diffDays(t, r.due) < 0 ? 'bad' : diffDays(t, r.due) <= 3 ? 'warn' : ''}">마감 ${r.due.slice(5)}</span>` : ''}</div>`).join('')}
     </section>
     ${moduleCard('goal', { when: r => (num(r.progress)) + '%', headHtml: r => `${esc(r.title)}<div class="progress"><i style="width:${Math.min(100, num(r.progress))}%"></i></div>`, empty: '올해 이루고 싶은 목표를 적어보세요.' })}
@@ -531,6 +562,8 @@ function pageHealth() {
     ${lineChart([{ name: '컨디션', color: 'var(--c-health)', pts: cond.map(r => [r.date, num(r.score)]) }, { name: '피부', color: 'var(--c-hobby)', pts: skin.map(r => [r.date, num(r.score)]) }], last14, t)}
   </section>
   <div class="grid">
+    ${suppCard()}
+    ${moduleCard('supp', { rows: [...data.supp].sort((a, b) => (!!a.stopped - !!b.stopped) || String(b.started || '').localeCompare(String(a.started || ''))), when: r => r.stopped ? '중단' : '복용 중', limit: 8 })}
     ${moduleCard('condition')}
     ${moduleCard('skin')}
     ${moduleCard('meal')}
@@ -538,6 +571,33 @@ function pageHealth() {
     ${moduleCard('clinic')}
     ${moduleCard('period', { top: periodTop, when: r => r.start.slice(2) })}
   </div>`;
+}
+
+function suppCard() {
+  const t = today(), act = activeSupps();
+  const log = data.suppLog.find(r => r.date === t);
+  const taken = new Set(log?.taken || []);
+  const last7 = [...Array(7)].map((_, i) => addDays(t, i - 6));
+  const rate = id => last7.filter(d => (data.suppLog.find(r => r.date === d)?.taken || []).includes(id)).length;
+  const low = act.filter(r => num(r.perDay) && r.stock !== undefined && r.stock !== '' && num(r.stock) / num(r.perDay) <= 7);
+  return `<section class="card"><div class="card-head"><h2><span class="swatch" style="background:var(--c-health)"></span>오늘 영양제 체크 <span class="muted small num">${taken.size}/${act.length}</span></h2></div>
+    ${low.length ? `<div class="notice" style="margin-bottom:10px">재구매 필요: ${low.map(r => `${esc(r.name)} (${Math.floor(num(r.stock) / num(r.perDay))}일분)`).join(', ')}</div>` : ''}
+    ${act.length ? `<div class="list">${act.map(r => `<label class="row" style="grid-template-columns:24px minmax(0,1fr) auto;cursor:pointer">
+      <input type="checkbox" data-take="${r.id}" ${taken.has(r.id) ? 'checked' : ''} aria-label="${esc(r.name)} 복용">
+      <div class="what"><div>${esc(r.name)}</div><div class="sub">${[r.timing, r.dose].filter(Boolean).map(esc).join(' · ')}</div></div>
+      <div class="small muted num" title="최근 7일 복용일">7일 ${rate(r.id)}/7</div></label>`).join('')}</div>` : '<div class="empty">아래 “영양제”에 지금 먹고 있는 제품을 등록하면 매일 체크리스트가 생겨요.</div>'}
+  </section>`;
+}
+async function toggleTake(id, on) {
+  const t = today();
+  const log = data.suppLog.find(r => r.date === t) || { id: 'd' + t, date: t, taken: [] };
+  const taken = new Set(log.taken || []);
+  on ? taken.add(id) : taken.delete(id);
+  const s = data.supp.find(r => r.id === id);
+  try {
+    await store.save('suppLog', { ...log, taken: [...taken] });
+    if (s && s.stock !== undefined && s.stock !== '') await store.save('supp', { ...s, stock: Math.max(0, num(s.stock) + (on ? -1 : 1) * (num(s.perDay) || 1)) });
+  } catch (err) { toast('저장 실패: ' + (err?.message || err?.code)); }
 }
 
 function pageSchedule() {
@@ -603,7 +663,7 @@ function pageCareer() {
       <td>${man(num(r.base))}</td><td class="${r.baseGrowth >= 0 ? 'up' : 'down'}">${r.baseGrowth == null ? '—' : pct(r.baseGrowth)}</td>
       <td>${r.bonus ? man(r.bonus) : '—'}</td><td>${r.welfare ? man(r.welfare) : '—'}</td><td>${man(r.total)}</td>
       <td class="${r.totalGrowth >= 0 ? 'up' : 'down'}">${r.totalGrowth == null ? '—' : pct(r.totalGrowth)}</td>
-      <td>${r.net ? won(r.net) : '—'}</td><td>${r.withheld ? man(r.withheld) : '—'}</td>
+      <td>${r.net ? won(r.net) : r.slipNet ? `<span title="월급 명세서 평균">${won(r.slipNet)}*</span>` : '—'}</td><td>${r.withheld ? man(r.withheld) : r.slipTax ? `<span title="월급 명세서 소득세+지방세 합계">${man(r.slipTax)}*</span>` : '—'}</td>
       <td class="${num(r.refund) >= 0 ? 'up' : 'down'}">${r.refund ? (num(r.refund) > 0 ? '+' : '') + man(r.refund) : '—'}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">연도별 연봉·성과급·복지비·실수령액·원천징수를 기록하면 상승률이 자동 계산돼요.</div>';
   return `${pageHead('Career', '커리어 관리')}
   <div class="stats">
@@ -616,10 +676,35 @@ function pageCareer() {
     ${rows.length ? barChart(rows) : ''}
     ${table}
   </section>
+  ${payslipSection()}
   <div class="grid">
     ${moduleCard('task', { rows: tasks, when: r => r.due ? r.due.slice(5).replace('-', '/') : '', headHtml: r => `${esc(r.title)} <span class="pill ${r.status === '완료' ? 'good' : r.due && r.due < t ? 'bad' : r.status === '진행 중' ? 'acc' : ''}">${esc(r.status || '')}</span>` })}
     ${moduleCard('company')}
   </div>`;
+}
+
+let slipYearSel = today().slice(0, 4);
+function payslipSection() {
+  const years = [...new Set(data.payslip.map(r => (r.month || '').slice(0, 4)).filter(Boolean))].sort().reverse();
+  if (!years.includes(slipYearSel)) years.unshift(slipYearSel);
+  const rows = sorted('payslip').filter(r => (r.month || '').startsWith(slipYearSel));
+  const tot = slipYear(slipYearSel);
+  const latest = latestSlip();
+  const cols = [['pBase','기본급'],['pOT','연장수당'],['pAllow','기타수당'],['pMeal','식대'],['pBonus','상여'],['_gross','지급합계'],['_ins','4대보험'],['_tax','소득세+지방세'],['_ded','공제합계'],['_net','실수령']];
+  const cell = (r, k) => { const p = slip(r); const v = k[0] === '_' ? p[k.slice(1)] : num(r[k]); return v ? won(v).replace('원', '') : '—'; };
+  return `<section class="card" style="margin-bottom:16px"><div class="card-head"><h2><span class="swatch" style="background:var(--c-career)"></span>월급 명세서</h2>
+    <div style="display:flex;gap:6px;align-items:center"><select id="slipYear" class="btn sm" aria-label="연도">${years.map(y => `<option ${y === slipYearSel ? 'selected' : ''}>${y}</option>`).join('')}</select>
+    ${latest ? `<button type="button" class="btn sm" data-copyslip="${latest.id}">지난달 복사</button>` : ''}<button type="button" class="btn sm" data-add="payslip">+ 명세서</button></div></div>
+    ${rows.length ? `<div class="stats" style="margin-bottom:10px">
+      <div class="stat"><div class="k">${slipYearSel} 누적 실수령</div><div class="v">${man(tot.net)}</div><div class="d">${tot.n}개월 · 월평균 ${man(tot.net / tot.n)}</div></div>
+      <div class="stat"><div class="k">누적 세금(원천징수)</div><div class="v">${man(tot.tax)}</div><div class="d">소득세+지방소득세</div></div>
+      <div class="stat"><div class="k">누적 4대보험</div><div class="v">${man(tot.ins)}</div><div class="d">지급액의 ${tot.gross ? (tot.ins / tot.gross * 100).toFixed(1) : 0}%</div></div>
+    </div>
+    <div class="tbl-wrap"><table><thead><tr><th>월</th>${cols.map(([, l]) => `<th>${l}</th>`).join('')}</tr></thead><tbody>
+    ${rows.map(r => `<tr><td><button type="button" class="icon-btn" data-edit="payslip:${r.id}" style="color:var(--ink);font-family:var(--mono)">${r.month.slice(5)}월</button></td>${cols.map(([k]) => `<td${k === '_net' ? ' style="font-weight:600"' : ''}>${cell(r, k)}</td>`).join('')}</tr>`).join('')}
+    <tr><td><b>합계</b></td>${cols.map(([k]) => { const v = k[0] === '_' ? tot[k.slice(1)] : rows.reduce((s, r) => s + num(r[k]), 0); return `<td><b>${v ? won(v).replace('원', '') : '—'}</b></td>`; }).join('')}</tr>
+    </tbody></table></div><div class="small muted" style="margin-top:6px">단위: 원 · 실제 입금액을 적으면 실수령에 그 값을 씁니다.</div>` : '<div class="empty">매달 명세서의 지급·공제 항목을 옮겨 적으면 연간 누적 실수령, 세금, 4대보험이 자동으로 합산돼요. 다음 달부터는 “지난달 복사”로 빠르게 입력하세요.</div>'}
+  </section>`;
 }
 
 function pageMoney() {
@@ -632,7 +717,7 @@ function pageMoney() {
   const wishSum = data.shop.filter(r => !r.bought).reduce((s, r) => s + num(r.price), 0);
   return `${pageHead('Money & Style', '머니·스타일')}
   <div class="stats">
-    <div class="stat"><div class="k">${+ym.slice(5)}월 지출</div><div class="v">${man(total)}원</div><div class="d">${last?.net ? `월 실수령의 ${Math.round(total / num(last.net) * 100)}%` : '실수령액을 넣으면 비율 표시'}</div></div>
+    <div class="stat"><div class="k">${+ym.slice(5)}월 지출</div><div class="v">${man(total)}원</div><div class="d">${(() => { const n = latestSlip() ? slip(latestSlip()).net : num(last?.net); return n ? `월 실수령의 ${Math.round(total / n * 100)}%` : '실수령액을 넣으면 비율 표시'; })()}</div></div>
     <div class="stat"><div class="k">쇼핑 리스트</div><div class="v">${data.shop.filter(r => !r.bought).length}개</div><div class="d">예상 ${man(wishSum)}원</div></div>
     <div class="stat"><div class="k">스타일링 노트</div><div class="v">${data.style.length}</div><div class="d">저장한 룩</div></div>
   </div>
@@ -644,6 +729,174 @@ function pageMoney() {
     ${moduleCard('style', { when: () => '' })}
     ${moduleCard('spend')}
   </div>`;
+}
+
+// ───────── AI 분석 ─────────
+let aiRange = 30, aiBusy = false, aiStatus = '', aiView = null;
+const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+const r1 = v => v == null ? null : Math.round(v * 10) / 10;
+function buildDigest(days) {
+  const to = today(), from = addDays(to, -(days - 1));
+  const inR = d => d && d >= from && d <= to;
+  const byDate = (mod, key = 'date') => { const o = {}; for (const r of data[mod]) if (inR(r[key])) (o[r[key]] ||= []).push(r); return o; };
+  const C = byDate('condition'), S = byDate('skin'), ML = byDate('meal'), W = byDate('workout'), D = byDate('drink'), O = byDate('overtime'), E = byDate('event'), SL = byDate('suppLog');
+  const per = periodDays();
+  const lines = [];
+  for (let d = from; d <= to; d = addDays(d, 1)) {
+    const c = C[d]?.[0], sk = S[d]?.[0], ml = ML[d] || [], w = W[d] || [], dr = D[d]?.[0], ot = O[d]?.[0];
+    const parts = [];
+    if (c?.score) parts.push('컨디션' + c.score); if (c?.sleep) parts.push('수면' + c.sleep + 'h'); if (c?.weight) parts.push(c.weight + 'kg'); if (c?.symptoms) parts.push('증상:' + c.symptoms);
+    if (sk?.score) parts.push('피부' + sk.score); if (sk?.concern) parts.push('피부고민:' + sk.concern);
+    if (ml.length) parts.push('식단:' + ml.map(m => (m.slot ? m.slot + ' ' : '') + m.menu + (m.kcal ? `(${m.kcal}kcal)` : '')).join('/'));
+    if (w.length) parts.push('운동:' + w.map(x => x.kind + (x.minutes ? x.minutes + '분' : '')).join('/'));
+    if (dr) parts.push('음주:' + [dr.what, dr.amount].filter(Boolean).join(' '));
+    if (ot) parts.push('야근' + (ot.hours ? ot.hours + 'h' : ''));
+    if (SL[d]) parts.push('영양제' + (SL[d][0].taken || []).length + '/' + activeSupps().length);
+    if (E[d]) parts.push('일정' + E[d].length + '건');
+    if (per.get(d) === 'period') parts.push('생리중');
+    if (parts.length) lines.push(d.slice(5) + ' ' + parts.join(', '));
+  }
+  // 교차 분석 신호(사전 계산)
+  const score = (mod, d) => { const r = data[mod].find(x => x.date === d); return r?.score ? +r.score : null; };
+  const cmp = (label, mod, cond) => {
+    const yes = [], no = [];
+    for (let d = from; d <= to; d = addDays(d, 1)) { const v = score(mod, d); if (v == null) continue; (cond(d) ? yes : no).push(v); }
+    return yes.length >= 2 && no.length >= 2 ? `${label}: ${r1(avg(yes))} (n=${yes.length}) vs 그 외 ${r1(avg(no))} (n=${no.length})` : null;
+  };
+  const drank = d => data.drink.some(r => r.date === d), otOn = d => data.overtime.some(r => r.date === d), wk = d => data.workout.some(r => r.date === d);
+  const slept = d => { const r = data.condition.find(x => x.date === d); return r?.sleep ? +r.sleep : null; };
+  const suppAll = d => { const l = data.suppLog.find(r => r.date === d); return l && activeSupps().length && (l.taken || []).length >= activeSupps().length; };
+  const signals = [
+    cmp('음주 다음날 컨디션', 'condition', d => drank(addDays(d, -1))),
+    cmp('음주 다음날 피부', 'skin', d => drank(addDays(d, -1))),
+    cmp('음주 2일 후 피부', 'skin', d => drank(addDays(d, -2))),
+    cmp('야근 다음날 컨디션', 'condition', d => otOn(addDays(d, -1))),
+    cmp('야근 당일 컨디션', 'condition', otOn),
+    cmp('운동한 날 컨디션', 'condition', wk),
+    cmp('운동 다음날 컨디션', 'condition', d => wk(addDays(d, -1))),
+    cmp('수면 7시간 이상인 날 컨디션', 'condition', d => (slept(d) ?? 0) >= 7),
+    cmp('전날 수면 7시간 이상일 때 피부', 'skin', d => (slept(d) ?? 0) >= 7),
+    cmp('생리 기간 컨디션', 'condition', d => per.get(d) === 'period'),
+    cmp('생리 기간 피부', 'skin', d => per.get(d) === 'period'),
+    cmp('영양제 전부 챙긴 날 컨디션', 'condition', suppAll),
+  ].filter(Boolean);
+  const logged = [...Array(days)].map((_, i) => addDays(from, i)).filter(d => data.suppLog.some(r => r.date === d && (r.taken || []).length)).length;
+  const ym = to.slice(0, 7), spend = monthSpend(ym), sal = salaryRows(), ls = latestSlip(), pi = periodInfo();
+  const sect = (t, arr) => arr.filter(Boolean).length ? `\n## ${t}\n` + arr.filter(Boolean).join('\n') : '';
+  const text = [
+    `기간: ${from} ~ ${to} (${days}일). 오늘: ${to}`,
+    profile.name ? `이름: ${profile.name} / 올해 다짐: ${profile.motto || '-'}` : '',
+    sect('일별 기록 (빈 날은 기록 없음)', lines),
+    sect('사전 계산된 교차 비교 (점수 1~5, 평균)', signals),
+    sect('복용 중인 영양제', activeSupps().map(r => `- ${r.name}${r.brand ? ' (' + r.brand + ')' : ''}: ${[r.timing, r.dose, r.perDay && '하루 ' + r.perDay + '회', r.purpose && '목적 ' + r.purpose, r.started && r.started + '부터', r.memo].filter(Boolean).join(', ')}`).concat(activeSupps().length ? [`기간 중 복용 체크한 날: ${logged}/${days}일`] : [])),
+    sect('생리 주기', [pi && `평균 주기 ${pi.cycle}일, 기간 ${pi.len}일, 다음 예정 ${pi.next}`]),
+    sect('병원 방문', data.clinic.filter(r => inR(r.date) || (r.next && r.next >= to)).map(r => `- ${r.date} ${r.place} ${r.dept || ''} ${r.treatment || ''}${r.next ? ' / 다음 예약 ' + r.next : ''}`)),
+    sect('일정·사회생활', [`일정 ${Object.values(E).flat().length}건 (구분: ${Object.entries(Object.values(E).flat().reduce((o, r) => (o[r.kind || '기타'] = (o[r.kind || '기타'] || 0) + 1, o), {})).map(([k, v]) => k + ' ' + v).join(', ') || '-'})`, `음주 ${Object.keys(D).length}일, 야근 ${Object.keys(O).length}일 (총 ${Object.values(O).flat().reduce((x, r) => x + num(r.hours), 0)}시간)`]),
+    sect('커리어', [
+      ...data.company.filter(r => !r.left).map(r => `재직: ${r.name} ${r.role || ''} (입사 ${r.joined || '?'})`),
+      ...data.task.filter(r => r.status !== '완료').map(r => `업무: ${r.title} [${r.status || '-'}] 마감 ${r.due || '-'}${r.due && r.due < to ? ' (지남)' : ''}`),
+      ...sal.map(r => `${r.year}년 연봉 ${man(num(r.base))}원${r.baseGrowth != null ? ' (' + pct(r.baseGrowth) + ')' : ''}, 총보상 ${man(r.total)}원`)]),
+    sect('돈', [
+      ls && `최근 명세서 ${ls.month}: 지급 ${won(slip(ls).gross)}, 공제 ${won(slip(ls).ded)} (세금 ${won(slip(ls).tax)}, 4대보험 ${won(slip(ls).ins)}), 실수령 ${won(slip(ls).net)}`,
+      `${ym} 지출: ${Object.entries(spend).map(([k, v]) => k + ' ' + won(v)).join(', ') || '기록 없음'}`,
+      `미구매 쇼핑 리스트: ${data.shop.filter(r => !r.bought).map(r => r.item + (r.price ? ' ' + man(r.price) + '원' : '') + (r.priority ? '[' + r.priority + ']' : '')).join(', ') || '없음'}`]),
+    sect('취미', [
+      `레슨 ${data.lesson.filter(r => inR(r.date)).length}회, 관람 ${data.show.filter(r => inR(r.date)).length}회, 오케스트라 ${data.orchestra.filter(r => inR(r.date)).length}회(결석 ${data.orchestra.filter(r => inR(r.date) && r.attend === '결석').length})`,
+      `읽는 중: ${data.book.filter(r => r.status === '읽는 중').map(r => r.title).join(', ') || '-'} / 기간 내 완독 ${data.book.filter(r => inR(r.finished)).length}권`]),
+    sect('올해 목표', data.goal.map(r => `- ${r.title} (${r.area || '-'}) ${num(r.progress)}%`)),
+  ].filter(Boolean).join('\n');
+  return { text, from, to, days: lines.length };
+}
+function aiPrompt(digest) {
+  return `당신은 한 사람을 연예인처럼 전담 관리하는 매니저이자 데이터 분석가입니다. 아래는 그 사람이 직접 기록한 생활 데이터입니다.
+
+할 일:
+1. 기록에서 반복되는 패턴과 항목 사이의 연관성을 찾으세요. 예: 음주·야근·수면·운동·생리 주기와 컨디션·피부의 관계, 영양제 복용 꾸준함, 지출 습관, 업무 마감.
+2. 근거가 되는 숫자나 날짜를 반드시 함께 적으세요. "사전 계산된 교차 비교"를 우선 활용하고, 표본(n)이 작으면 확신도를 낮추세요.
+3. 구체적인 "해라(Do)"와 "하지 마라(Don't)"를 주세요. 막연한 조언 말고 이 사람 기록에 근거한 행동으로 쓰세요.
+4. 영양제는 성분 중복, 같이 먹으면 흡수가 떨어지는 조합, 복용 시점을 점검하세요. 확실하지 않으면 약사·의사 상담을 권하세요.
+5. 의학적 진단은 하지 말고, 이상 신호가 있으면 병원 방문을 권하세요.
+6. 기록이 부족한 영역은 지어내지 말고 "더 기록하면 좋은 것"에 적으세요.
+
+반드시 아래 JSON 형식으로만 답하세요. 모든 문장은 한국어 존댓말로.
+{
+  "headline": "한 문장 총평",
+  "scores": [{"area": "건강|피부|생활리듬|돈|커리어|취미", "score": 0-100 정수, "reason": "한 줄 근거"}],
+  "patterns": [{"title": "발견한 패턴", "evidence": "근거 숫자·날짜", "confidence": "높음|보통|낮음"}],
+  "do": [{"action": "해라", "why": "이유(기록 근거)", "area": "분야"}],
+  "dont": [{"action": "하지 마라", "why": "이유(기록 근거)", "area": "분야"}],
+  "supplements": [{"name": "영양제 이름 또는 조합", "advice": "복용 조언"}],
+  "watch": ["주의 깊게 볼 신호"],
+  "plan": ["다음 7일 실행 계획 (요일·횟수 등 구체적으로)"],
+  "log_more": ["더 기록하면 분석이 좋아지는 항목"]
+}
+
+--- 기록 데이터 ---
+${digest.text}`;
+}
+const parseJSON = t => { const m = String(t).replace(/```(json)?/g, '').match(/\{[\s\S]*\}/); return JSON.parse(m ? m[0] : t); };
+async function runAnalysis() {
+  if (aiBusy) return;
+  const digest = buildDigest(aiRange);
+  aiBusy = true; aiStatus = '분석 중이에요… (30초~1분 정도 걸려요)'; render();
+  let result = null, engine = '';
+  try {
+    const sample = await window.claude?.use?.('sample');
+    if (sample) {
+      engine = 'Claude';
+      result = await sample.json(aiPrompt(digest), { modelTier: 'complex', cache: false });
+    } else {
+      engine = 'GPT';
+      const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [{ role: 'user', content: aiPrompt(digest) }] }) });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || `서버 응답 ${res.status}`);
+      engine = 'GPT' + (j.model ? ` (${j.model})` : '');
+      result = parseJSON(j.reply);
+    }
+    const rec = { id: uid(), _ts: Date.now(), date: today(), range: aiRange, engine, title: result.headline || 'AI 리포트', result: JSON.stringify(result) };
+    aiView = rec.id;
+    await store.save('report', rec);
+    data.report.some(r => r.id === rec.id) || data.report.push(rec);
+    aiStatus = '';
+  } catch (err) {
+    const code = err?.code;
+    aiStatus = code === 'not_granted' ? 'AI 사용 권한을 허용해야 분석할 수 있어요. 페이지 상단의 권한 설정에서 허용해 주세요.'
+      : code === 'rate_limited' ? '요청이 많아요. 잠시 후 다시 눌러 주세요.'
+      : '분석하지 못했어요: ' + (err?.message || code || err) + (engine === 'GPT' ? ' (Vercel에 배포된 페이지에서 OPENROUTER_API_KEY가 설정돼 있어야 GPT를 쓸 수 있어요)' : '');
+  }
+  aiBusy = false; render();
+}
+function pageAI() {
+  const reports = sorted('report');
+  const cur = reports.find(r => r.id === aiView) || reports[0];
+  let res = null; try { res = cur && JSON.parse(cur.result); } catch {}
+  const digest = buildDigest(aiRange);
+  const list = (arr, f) => (arr || []).length ? `<div class="list">${arr.map(f).join('')}</div>` : '<div class="empty">해당 내용이 없어요.</div>';
+  const sc = v => v >= 75 ? 'good' : v >= 50 ? 'warn' : 'bad';
+  return `${pageHead('AI Report', 'AI 분석 리포트')}
+  <section class="card" style="margin-bottom:16px"><div class="card-head"><h2>분석 요청</h2></div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+      <span class="small muted">분석 기간</span>
+      ${[[14, '2주'], [30, '30일'], [90, '3개월'], [365, '1년']].map(([v, l]) => `<label class="chk"><input type="radio" name="aiRange" value="${v}" ${aiRange === v ? 'checked' : ''}> ${l}</label>`).join('')}
+      <button type="button" class="btn primary" data-ai ${aiBusy ? 'disabled' : ''}>${aiBusy ? '분석 중…' : '분석 받기'}</button>
+    </div>
+    <div class="small muted" style="margin-top:10px">선택한 기간에 기록이 있는 날 <b class="num">${digest.days}</b>일. 건강·일정·영양제·돈·커리어 기록을 요약해서 AI에게 보내고, 패턴과 “해라/하지 마라” 조언을 받아요. 기록이 2주 이상 쌓일수록 정확해져요. 의학적 진단은 아니에요.</div>
+    ${aiStatus ? `<div class="notice" style="margin:10px 0 0">${esc(aiStatus)}</div>` : ''}
+  </section>
+  ${res ? `
+  <section class="card" style="margin-bottom:16px"><div class="eyebrow">${esc(cur.date)} · 최근 ${cur.range}일 · ${esc(cur.engine)}</div>
+    <h2 style="font-family:var(--display);font-size:20px;margin:6px 0 12px;text-wrap:balance">${esc(res.headline)}</h2>
+    <div class="stats" style="margin:0">${(res.scores || []).map(x => `<div class="stat"><div class="k">${esc(x.area)}</div><div class="v">${num(x.score)} <span class="pill ${sc(num(x.score))}">${num(x.score) >= 75 ? '양호' : num(x.score) >= 50 ? '보통' : '관리 필요'}</span></div><div class="d">${esc(x.reason)}</div></div>`).join('')}</div>
+  </section>
+  <div class="grid">
+    <section class="card"><div class="card-head"><h2><span class="swatch" style="background:var(--good)"></span>해라 (Do)</h2></div>${list(res.do, x => `<div class="row" style="grid-template-columns:64px minmax(0,1fr)"><div class="when">${esc(x.area || '')}</div><div class="what"><div><b>${esc(x.action)}</b></div><div class="sub">${esc(x.why)}</div></div></div>`)}</section>
+    <section class="card"><div class="card-head"><h2><span class="swatch" style="background:var(--bad)"></span>하지 마라 (Don't)</h2></div>${list(res.dont, x => `<div class="row" style="grid-template-columns:64px minmax(0,1fr)"><div class="when">${esc(x.area || '')}</div><div class="what"><div><b>${esc(x.action)}</b></div><div class="sub">${esc(x.why)}</div></div></div>`)}</section>
+    <section class="card"><div class="card-head"><h2>발견한 패턴</h2></div>${list(res.patterns, x => `<div class="row" style="grid-template-columns:minmax(0,1fr) auto"><div class="what"><div>${esc(x.title)}</div><div class="sub">${esc(x.evidence)}</div></div><span class="pill ${x.confidence === '높음' ? 'good' : x.confidence === '보통' ? 'warn' : ''}">확신 ${esc(x.confidence || '-')}</span></div>`)}</section>
+    <section class="card"><div class="card-head"><h2>영양제 점검</h2></div>${list(res.supplements, x => `<div class="row" style="grid-template-columns:minmax(0,1fr)"><div class="what"><div>${esc(x.name)}</div><div class="sub">${esc(x.advice)}</div></div></div>`)}</section>
+    <section class="card"><div class="card-head"><h2>다음 7일 계획</h2></div>${list(res.plan, x => `<div class="row" style="grid-template-columns:20px minmax(0,1fr)"><div class="when">☐</div><div class="what">${esc(x)}</div></div>`)}</section>
+    <section class="card"><div class="card-head"><h2>주의 신호 · 더 기록할 것</h2></div>${list([...(res.watch || []).map(x => ['주의', x]), ...(res.log_more || []).map(x => ['기록', x])], ([k, x]) => `<div class="row" style="grid-template-columns:40px minmax(0,1fr)"><div class="when">${k}</div><div class="what">${esc(x)}</div></div>`)}</section>
+  </div>` : '<section class="card"><div class="empty">아직 리포트가 없어요. 기록을 며칠 쌓은 뒤 “분석 받기”를 눌러 보세요.</div></section>'}
+  ${reports.length > 1 ? `<section class="card" style="margin-top:16px"><div class="card-head"><h2>지난 리포트</h2></div><div class="list">${reports.map(r => `<div class="row"><div class="when">${r.date.slice(2)}</div><div class="what"><div>${esc(r.title)}</div><div class="sub">최근 ${r.range}일 · ${esc(r.engine)}</div></div><div class="acts"><button type="button" class="icon-btn" data-aiview="${r.id}">보기</button><button type="button" class="icon-btn" data-aidel="${r.id}">삭제</button></div></div>`).join('')}</div></section>` : ''}`;
 }
 
 // ───────── 차트 ─────────
@@ -706,6 +959,7 @@ function openForm(mod, id, preset = {}) {
   const v = rec || { ...preset };
   if (!rec) for (const [k, , type] of m.fields) if (type === 'date' && k === m.date && !v[k]) v[k] = today();
   if (!rec && mod === 'salary') v.year = new Date().getFullYear();
+  if (!rec && mod === 'payslip' && !v.month) v.month = today().slice(0, 7);
   const f = $('#dlgForm');
   f.innerHTML = `<div class="card-head" style="margin:0"><h2><span class="swatch" style="background:${m.color}"></span>${m.title} ${rec ? '수정' : '기록'}</h2><button type="button" class="icon-btn" data-close aria-label="닫기">닫기</button></div>
   <div class="fgrid">${m.fields.map(([k, label, type, req, opts]) => {
@@ -768,12 +1022,27 @@ document.addEventListener('click', e => {
   else if (b.dataset.edit) { const [mod, id] = b.dataset.edit.split(':'); openForm(mod, id); }
   else if (b.dataset.more) { showAll.has(b.dataset.more) ? showAll.delete(b.dataset.more) : showAll.add(b.dataset.more); render(); }
   else if (b.hasAttribute('data-profile')) openProfile();
+  else if (b.dataset.copyslip) {
+    const src = data.payslip.find(r => r.id === b.dataset.copyslip); if (!src) return;
+    const { id, _ts, actual, memo, pBonus, pOT, ...rest } = src;
+    const [y, m] = src.month.split('-').map(Number); const d = new Date(y, m, 1);
+    openForm('payslip', null, { ...rest, month: `${d.getFullYear()}-${pad(d.getMonth() + 1)}` });
+  }
+  else if (b.hasAttribute('data-ai')) runAnalysis();
+  else if (b.dataset.aiview) { aiView = b.dataset.aiview; render(); window.scrollTo(0, 0); }
+  else if (b.dataset.aidel) { store.remove('report', b.dataset.aidel); if (aiView === b.dataset.aidel) aiView = null; }
   else if (b.dataset.cal != null) {
     const dir = +b.dataset.cal;
     if (!dir) { calMonth = today().slice(0, 7); calSel = today(); }
     else { const [y, m] = calMonth.split('-').map(Number); const d = new Date(y, m - 1 + dir, 1); calMonth = ymd(d).slice(0, 7); }
     render();
   } else if (b.dataset.day) { calSel = b.dataset.day; render(); }
+});
+
+document.addEventListener('change', e => {
+  if (e.target.dataset.take) toggleTake(e.target.dataset.take, e.target.checked);
+  if (e.target.id === 'slipYear') { slipYearSel = e.target.value; render(); }
+  if (e.target.name === 'aiRange') aiRange = +e.target.value;
 });
 
 $('#exportBtn').addEventListener('click', async () => {
