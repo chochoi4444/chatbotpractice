@@ -226,7 +226,7 @@ const M = {
     ['date','날짜','date',1], ['subject','레슨 종류','text',1], ['teacher','선생님','text'], ['content','배운 내용','textarea'], ['cost','비용(원)','number'] ],
     head: r => r.subject, sub: r => [r.teacher, r.content, r.cost && won(r.cost)].filter(Boolean).join(' · ') },
   show: { g: 'hobby', title: '전시·공연 관람', date: 'date', fields: [
-    ['date','관람일','date',1], ['kind','구분','select',0,['전시','클래식','뮤지컬','연극','콘서트','영화','기타']], ['title','제목','text',1],
+    ['date','관람일','date',1], ['kind','구분','select',0,['전시','클래식','발레','뮤지컬','연극','콘서트','영화','기타']], ['title','제목','text',1],
     ['venue','장소','text'], ['rating','평점','rating'], ['cost','비용(원)','number'], ['review','후기','textarea'] ],
     head: r => `${r.title}`, sub: r => [r.kind, r.venue, r.rating && stars(r.rating), r.cost && won(r.cost)].filter(Boolean).join(' · ') },
   orchestra: { g: 'hobby', title: '오케스트라 연습', date: 'date', fields: [
