@@ -1,0 +1,12 @@
+{
+  "name": "chatbotpractice",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple chatbot on Vercel using OpenRouter",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
