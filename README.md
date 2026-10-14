@@ -1,6 +1,6 @@
 # chatbotpractice
 
-OpenRouter API를 사용하는 간단한 챗봇입니다. Vercel에 바로 배포할 수 있습니다.
+OpenRouter API(또는 Vercel AI Gateway)를 사용하는 간단한 챗봇입니다. Vercel에 바로 배포할 수 있습니다.
 
 ## 구조
 
@@ -15,7 +15,7 @@ API 키는 서버리스 함수에서만 사용되므로 브라우저에 노출�
 
 | 이름 | 필수 | 설명 |
 | --- | --- | --- |
-| `OPENROUTER_API_KEY` | ✅ | OpenRouter API 키 |
+| `OPENROUTER_API_KEY` | ✅ | OpenRouter 키(`sk-or-v1-…`) 또는 Vercel AI Gateway 키(`vck_…`). `vck_`로 시작하면 AI Gateway로 요청합니다. `AI_GATEWAY_API_KEY` 이름으로 넣어도 됩니다. |
 | `OPENROUTER_MODEL` | | 사용할 모델 ID (기본값 `openai/gpt-4o-mini`) |
 
 Vercel 대시보드 → Project → Settings → Environment Variables에서 설정한 뒤 재배포하세요.
